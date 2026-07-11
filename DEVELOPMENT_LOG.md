@@ -1,5 +1,13 @@
 # Development log
 
+## 2026-07-12 — Ground-level immersive journey
+- **Affected files:** index.html, styles.css, js/data.js, js/journey.js, js/app.js, CHANGELOG.md, DEVELOPMENT_LOG.md
+- **Reason:** Add a fourth experience in which the visitor begins at the foot of the outer wall, receives an explanation, and advances step by step at human height.
+- **Technical implementation:** Added a ten-stop journey dataset, a dedicated Hebrew/French interface, an opening in the reconstructed eastern wall, smooth `THREE.CatmullRomCurve3` waypoint movement, pause/resume, previous/continue/exit controls, keyboard navigation and validated journey remote commands.
+- **Expected user-visible effect:** The visitor now experiences a progressive walk from outside the Temple Mount through the entrance and principal educational stops, ending respectfully in front of the Heikhal.
+- **Tests performed:** Static source review, route endpoint validation, menu/control ID verification, mode-state validation and Vercel-static compatibility review.
+- **Remaining limitations:** Physical mobile, Gear VR/Cardboard comfort, collision clearance and exact historical route require real-device and historical-expert validation before production merge.
+
 ## 2026-07-12 — Initial audit and documentation
 - **Affected files:** CHANGELOG.md, ROADMAP.md, DEVELOPMENT_LOG.md, ARCHITECTURE.md, TESTING.md
 - **Reason:** Establish the required evidence-based baseline before behavior changes.
@@ -35,7 +43,7 @@
 ## 2026-07-12 — External VR remote control
 - **Affected files:** index.html, styles.css, remote.html, remote.css, js/remote-session.js, js/remote-controller.js, js/app.js, ARCHITECTURE.md, TESTING.md
 - **Reason:** Keep the experience controllable after the phone is placed inside a headset.
-- **Technical implementation:** Added an ephemeral Supabase Realtime Broadcast session using a cryptographically random pairing token, a separate Hebrew/French control page, headset status reporting and remote commands for modes, tour, viewpoints, hotspots, quality, audio and VR exit. Only the browser-safe publishable key is committed; no service key or personal data is stored.
+- **Technical implementation:** Added an ephemeral Supabase Realtime Broadcast session using a cryptographically random 128-bit token, a separate Hebrew/French control page, headset status reporting and remote commands for modes, tour, viewpoints, hotspots, quality, audio and VR exit. Only the browser-safe publishable key is committed; no service key or personal data is stored.
 - **Expected user-visible effect:** A second phone or computer can control the headset without touching it.
 - **Tests performed:** Planned two-tab pairing, command delivery, reconnect/error states and existing local regression suite.
 - **Remaining limitations:** Control requires internet access; pairing links grant control until the headset page closes; production should later add authenticated private channels if persistent accounts are required.

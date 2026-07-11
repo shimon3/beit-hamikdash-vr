@@ -28,6 +28,7 @@
     <p class="lead">מסע חינוכי תלת־ממדי אל ההיכל, המזבח ועבודת הכהנים</p>
     <div class="mode-grid">
       <button class="mode-card primary-card" data-mode="tour"><span>◉</span><strong>סיור מודרך</strong><small>שבע תחנות עם הסברים</small></button>
+      <button class="mode-card journey-card" data-mode="journey"><span>🚶</span><strong>מסע בתוך המקדש</strong><small>הליכה מודרכת בגובה אדם מן החומה אל ההיכל</small></button>
       <button class="mode-card" data-mode="explore"><span>✦</span><strong>סיור חופשי</strong><small>גלו מוקדי ידע ונקודות מבט</small></button>
       <button class="mode-card" data-mode="stereo"><span>◫</span><strong>מצב סטריאו לטלפון</strong><small>לתושבת Cardboard; אינו תמיכה מלאה ב־Gear VR</small></button>
     </div>
@@ -75,6 +76,17 @@
     </div>
   </nav>
 
+  <nav id="journey-controls" class="tour-controls journey-controls hidden" aria-label="בקרת המסע בגובה אדם">
+    <div class="journey-heading"><strong id="journey-title">למרגלות החומה</strong><small id="journey-subtitle">Au pied du mur</small></div>
+    <div class="progress-wrap"><span id="journey-counter">1 / 10</span><progress id="journey-progress" max="10" value="1"></progress></div>
+    <div class="control-row">
+      <button id="journey-exit" aria-label="יציאה מהמסע">יציאה</button>
+      <button id="journey-prev" aria-label="השלב הקודם">הקודם</button>
+      <button id="journey-pause" class="primary" aria-label="השהיית התנועה">השהיה</button>
+      <button id="journey-next" aria-label="המשך לשלב הבא">המשך</button>
+    </div>
+  </nav>
+
   <aside id="education-panel" class="panel hidden" aria-labelledby="panel-title">
     <button id="close-panel" class="icon-button" aria-label="סגירת המידע">×</button>
     <p id="panel-kicker" class="eyebrow"></p><h2 id="panel-title"></h2><p id="panel-copy"></p>
@@ -82,7 +94,8 @@
 
   <div id="explore-tools" class="explore-tools hidden">
     <button id="overview" class="hud-button">⌖ <span>מבט־על</span></button>
-    <button id="next-view" class="hud-button">♙ <span>גובה אדם</span></button>\n    <button id="next-hotspot" class="hud-button">✦ <span>מוקד הבא</span></button>
+    <button id="next-view" class="hud-button">♙ <span>גובה אדם</span></button>
+    <button id="next-hotspot" class="hud-button">✦ <span>מוקד הבא</span></button>
   </div>
 
   <button id="stereo-exit" class="stereo-exit hidden">× יציאה ממצב סטריאו</button>
