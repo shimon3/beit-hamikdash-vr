@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- External mobile/desktop VR remote control with ephemeral Supabase Realtime pairing.
+- Remote commands for modes, tour stops, viewpoints, hotspots, recentering, quality, volume and exits.
+- Local stereo/fullscreen preparation before headset insertion.
 - Hebrew experience selection for guided tour, free exploration and phone stereo.
 - Mode-specific onboarding, persistent menu return and semantic accessible controls.
 - Seven-stop guided tour with previous, pause/resume, next, exit and progress.
