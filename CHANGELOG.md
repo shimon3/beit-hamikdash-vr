@@ -3,11 +3,23 @@
 ## [Unreleased]
 
 ### Added
-- Initial engineering audit and required documentation.
+- Hebrew experience selection for guided tour, free exploration and phone stereo.
+- Mode-specific onboarding, persistent menu return and semantic accessible controls.
+- Seven-stop guided tour with previous, pause/resume, next, exit and progress.
+- Interactive hotspots, educational panel, overview and safe human-height viewpoints.
+- Optional locally generated audio channels with mute, volume and channel controls.
+- Low, Balanced and High quality presets plus optional FPS display.
+- Capability reporting for WebGL, orientation, fullscreen, orientation lock and WebXR.
+- Phone stereo fallback with adjustable IPD and visible exit.
+- Required architecture, roadmap, testing, changelog and development records.
 
-### Baseline issues
-- Cumulative vertical drift in character animation.
-- Drag gestures can trigger viewpoint changes.
-- Unguarded Three.js/WebGL startup.
-- Per-frame vector allocations and DOM updates in the tour.
-- No WebXR detection; phone stereo is labelled as generic VR.
+### Fixed
+- Cumulative vertical character drift.
+- Accidental viewpoint action after drag gestures.
+- Unguarded Three.js/WebGL initialization and missing runtime recovery UI.
+- Resize/orientation handling and hidden-page rendering work.
+- Repeated tour DOM writes and per-frame camera/hotspot math allocations.
+
+### Changed
+- Split the monolithic prototype into HTML, CSS and native JavaScript modules.
+- Clarified that the fallback is phone stereoscopic mode, not verified full Gear VR support.
