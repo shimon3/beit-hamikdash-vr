@@ -78,7 +78,8 @@ function animate(){
  const fire=scene.getObjectByName("fire");fire.children.forEach(f=>{const s=.8+.2*Math.sin(t*8+f.userData.phase);f.scale.set(s,1+.25*Math.sin(t*10+f.userData.phase),s)});
  scene.children.filter(o=>o.userData.baseY!==undefined).forEach(o=>o.position.y=o.userData.baseY+Math.sin(t*2+o.userData.phase)*.025);
  if(transition<1){transition=Math.min(1,transition+dt/.9);const k=transition*transition*(3-2*transition);camera.position.lerpVectors(fromPos,toPos,k);target.lerpVectors(fromLook,toLook,k)}
- else if(mode==="tour"&&tourPlaying){tourDwell+=dt;if(tourDwell>6)goTour(tourIndex+1);camera.lookAt(target)}\n else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
+ else if(mode==="tour"&&tourPlaying){tourDwell+=dt;if(tourDwell>6)goTour(tourIndex+1);camera.lookAt(target)}
+ else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
  else{theta+=dTheta;phi+=dPhi;radius+=dRadius;dTheta*=.82;dPhi*=.82;dRadius*=.75;phi=Math.max(.18,Math.min(1.46,phi));radius=Math.max(18,Math.min(300,radius));camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));camera.lookAt(target)}
  hotspots.forEach(h=>{h.visible=mode==="explore";if(h.visible){h.scale.setScalar(1+.12*Math.sin(t*3+h.position.x));tmp.off.copy(h.position).sub(camera.position);tmp.dir.copy(tmp.off).normalize();raycaster.set(camera.position,tmp.dir);const block=raycaster.intersectObjects(occluders,true)[0];h.visible=!block||block.distance>=tmp.off.length()-.5}});
  if(stereo)renderStereo();else renderer.render(scene,camera)
