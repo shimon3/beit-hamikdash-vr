@@ -3,7 +3,7 @@ import{detectCapabilities,capabilityMarkup,requestOrientation}from"./compatibili
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const ui={loading:$("loading"),fatal:$("fatal"),menu:$("main-menu"),onboarding:$("onboarding"),top:$("topbar"),hint:$("hint"),tour:$("tour-controls"),panel:$("education-panel"),tools:$("explore-tools"),settings:$("settings"),stereoExit:$("stereo-exit")};
 let caps,renderer,scene,camera,eyeL,eyeR,clock,raf=0,mode="menu",quality="balanced",paused=false,tourIndex=0,tourPlaying=true,viewIndex=0,stereo=false,ipd=.064;
-let theta=.55,phi=1.04,radius=145,dTheta=0,dPhi=0,dRadius=0,target,fromPos,fromLook,toPos,toLook,transition=1,lastCaption="",hotspots=[],raycaster,pointer,gyroEnabled=false;
+let theta=.55,phi=1.04,radius=145,dTheta=0,dPhi=0,dRadius=0,target,fromPos,fromLook,toPos,toLook,transition=1,lastCaption="",hotspots=[],occluders=[],raycaster,pointer,gyroEnabled=false,tourDwell=0,hotspotIndex=-1;
 const tmp={q:null,e:null,q0:null,q1:null,axis:null,off:null,pos:null,next:null};
 const gyro={a:0,b:0,g:0,o:0,ok:false};
 function show(el,on=true){el.classList.toggle("hidden",!on)}
@@ -24,8 +24,8 @@ async function boot(){
  }catch(e){console.error(e);fail(e.message==="WebGL unavailable"?"WebGL אינו זמין. אפשר לנסות דפדפן מעודכן או להפעיל האצת חומרה.":"Three.js לא נטען. בדקו את החיבור ונסו שוב.")}
 }
 function mat(color,rough=.8,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
-function addBox(w,h,d,m,x,y,z,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
-function addCyl(r,h,m,x,y,z,seg=12,parent=scene){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
+function addBox(w,h,d,m,x,y,z,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);occluders.push(o);return o}
+function addCyl(r,h,m,x,y,z,seg=12,parent=scene){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);o.position.set(x,y,z);o.castShadow=true;parent.add(o);occluders.push(o);return o}
 function buildScene(){
  renderer=new THREE.WebGLRenderer({canvas:$("scene"),antialias:quality!=="low",powerPreference:"high-performance"});
  renderer.outputEncoding=THREE.sRGBEncoding;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -33,7 +33,7 @@ function buildScene(){
  camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,1000);eyeL=camera.clone();eyeR=camera.clone();
  target=new THREE.Vector3(0,14,-5);fromPos=new THREE.Vector3();fromLook=new THREE.Vector3();toPos=new THREE.Vector3();toLook=new THREE.Vector3();
  raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
- tmp.q=new THREE.Quaternion();tmp.e=new THREE.Euler();tmp.q0=new THREE.Quaternion();tmp.q1=new THREE.Quaternion(-Math.sqrt(.5),0,0,Math.sqrt(.5));tmp.axis=new THREE.Vector3(0,0,1);tmp.off=new THREE.Vector3();tmp.pos=new THREE.Vector3();tmp.next=new THREE.Vector3();
+ tmp.q=new THREE.Quaternion();tmp.e=new THREE.Euler();tmp.q0=new THREE.Quaternion();tmp.q1=new THREE.Quaternion(-Math.sqrt(.5),0,0,Math.sqrt(.5));tmp.axis=new THREE.Vector3(0,0,1);tmp.off=new THREE.Vector3();tmp.dir=new THREE.Vector3();tmp.pos=new THREE.Vector3();tmp.next=new THREE.Vector3();
  clock=new THREE.Clock();
  scene.add(new THREE.HemisphereLight(0xfff1cd,0x766348,.8));const sun=new THREE.DirectionalLight(0xffdfaa,1.2);sun.position.set(120,170,90);sun.castShadow=true;sun.shadow.mapSize.set(quality==="high"?2048:1024,quality==="high"?2048:1024);scene.add(sun);
  const stone=mat(0xd8c79d),white=mat(0xf0eadc,.65),gold=mat(0xd2aa37,.28,.85),dark=mat(0x20170f),bronze=mat(0x98643a,.4,.7);
@@ -67,7 +67,7 @@ function openInfo(info){$("panel-kicker").textContent=info.kicker;$("panel-title
 function focus(info){fromPos.copy(camera.position);fromLook.copy(target);toPos.fromArray(info.p);toLook.fromArray(info.look);transition=0}
 function interruptTransition(){transition=1;if(mode==="tour")tourPlaying=false;updateTourUI()}
 function updateTourUI(){if(mode!=="tour")return;const t=TOUR[tourIndex];$("tour-counter").textContent=`${tourIndex+1} / ${TOUR.length}`;$("tour-progress").value=tourIndex+1;$("tour-pause").textContent=tourPlaying?"השהיה":"המשך";if(lastCaption!==t.id){openInfo(t);lastCaption=t.id}}
-function goTour(i){tourIndex=(i+TOUR.length)%TOUR.length;tourPlaying=true;focus(TOUR[tourIndex]);updateTourUI()}
+function goTour(i){tourIndex=(i+TOUR.length)%TOUR.length;tourPlaying=true;tourDwell=0;focus(TOUR[tourIndex]);updateTourUI()}
 function orientation(){gyro.o=THREE.MathUtils.degToRad(Number(screen.orientation?.angle??window.orientation??0))}
 function applyQuality(q){quality=q;localStorage.setItem("temple-quality",q);if(!renderer)return;const cfg={low:{dpr:1,shadow:false},balanced:{dpr:1.5,shadow:true},high:{dpr:2,shadow:true}}[q];renderer.setPixelRatio(Math.min(devicePixelRatio,cfg.dpr));renderer.shadowMap.enabled=cfg.shadow;scene?.getObjectByName("fire")?.children.forEach((f,i)=>f.visible=q!=="low"||i<4);resize()}
 function resize(){if(!renderer)return;const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
@@ -78,9 +78,9 @@ function animate(){
  const fire=scene.getObjectByName("fire");fire.children.forEach(f=>{const s=.8+.2*Math.sin(t*8+f.userData.phase);f.scale.set(s,1+.25*Math.sin(t*10+f.userData.phase),s)});
  scene.children.filter(o=>o.userData.baseY!==undefined).forEach(o=>o.position.y=o.userData.baseY+Math.sin(t*2+o.userData.phase)*.025);
  if(transition<1){transition=Math.min(1,transition+dt/.9);const k=transition*transition*(3-2*transition);camera.position.lerpVectors(fromPos,toPos,k);target.lerpVectors(fromLook,toLook,k)}
- else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
+ else if(mode==="tour"&&tourPlaying){tourDwell+=dt;if(tourDwell>6)goTour(tourIndex+1);camera.lookAt(target)}\n else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
  else{theta+=dTheta;phi+=dPhi;radius+=dRadius;dTheta*=.82;dPhi*=.82;dRadius*=.75;phi=Math.max(.18,Math.min(1.46,phi));radius=Math.max(18,Math.min(300,radius));camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));camera.lookAt(target)}
- hotspots.forEach(h=>{h.visible=mode==="explore";if(h.visible){h.scale.setScalar(1+.12*Math.sin(t*3+h.position.x));tmp.off.copy(h.position).sub(camera.position);raycaster.set(camera.position,tmp.off.clone().normalize());const block=raycaster.intersectObjects(scene.children.filter(o=>o!==h&&!o.userData.hotspot),true)[0];h.visible=!block||block.distance>=tmp.off.length()-.5}});
+ hotspots.forEach(h=>{h.visible=mode==="explore";if(h.visible){h.scale.setScalar(1+.12*Math.sin(t*3+h.position.x));tmp.off.copy(h.position).sub(camera.position);tmp.dir.copy(tmp.off).normalize();raycaster.set(camera.position,tmp.dir);const block=raycaster.intersectObjects(occluders,true)[0];h.visible=!block||block.distance>=tmp.off.length()-.5}});
  if(stereo)renderStereo();else renderer.render(scene,camera)
 }
 function enterMode(next){mode=next;show(ui.menu,false);show(ui.onboarding,false);show(ui.top);show(ui.tools,next==="explore");show(ui.tour,next==="tour");show(ui.stereoExit,next==="stereo");show(ui.panel,next==="tour");$("mode-name").textContent=MODES[next].title;stereo=next==="stereo";if(stereo){applyQuality("low");startStereo()}if(next==="tour")goTour(0);else{target.set(0,14,-5);theta=.55;phi=1.04;radius=145;hint(next==="explore"?"גררו לסיבוב · צבטו או גללו לזום":"הזיזו את הראש או גררו כדי להביט")}}
@@ -92,7 +92,7 @@ function bindUI(){
  document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{const m=b.dataset.mode,o=MODES[m];$("onboarding-kicker").textContent=o.kicker;$("onboarding-title").textContent=o.title;$("onboarding-copy").textContent=o.copy;$("onboarding-list").innerHTML=o.tips.map(x=>"<li>"+x+"</li>").join("");$("start-mode").dataset.mode=m;show(ui.onboarding)});
  $("start-mode").onclick=e=>enterMode(e.currentTarget.dataset.mode);document.querySelector(".close-onboarding").onclick=()=>show(ui.onboarding,false);$("back-menu").onclick=exitMode;$("stereo-exit").onclick=exitMode;
  $("tour-prev").onclick=()=>goTour(tourIndex-1);$("tour-next").onclick=()=>goTour(tourIndex+1);$("tour-exit").onclick=exitMode;$("tour-pause").onclick=()=>{tourPlaying=!tourPlaying;if(tourPlaying&&transition>=1)goTour(tourIndex);updateTourUI()};
- $("close-panel").onclick=()=>show(ui.panel,false);$("overview").onclick=()=>focus({p:[135,78,155],look:[0,15,-10]});$("next-view").onclick=()=>{viewIndex=(viewIndex+1)%SAFE_VIEWS.length;const v=SAFE_VIEWS[viewIndex];focus(v);hint("נקודת מבט: "+v.name)};
+ $("close-panel").onclick=()=>show(ui.panel,false);$("overview").onclick=()=>focus({p:[135,78,155],look:[0,15,-10]});$("next-view").onclick=()=>{viewIndex=(viewIndex+1)%SAFE_VIEWS.length;const v=SAFE_VIEWS[viewIndex];focus(v);hint("נקודת מבט: "+v.name)};$("next-hotspot").onclick=()=>{hotspotIndex=(hotspotIndex+1)%HOTSPOTS.length;const h=HOTSPOTS[hotspotIndex];openInfo(h);focus(h)};
  const openSettings=()=>show(ui.settings);$("open-settings").onclick=openSettings;$("settings-button").onclick=openSettings;$("close-settings").onclick=()=>show(ui.settings,false);
  $("quality").onchange=e=>applyQuality(e.target.value);$("show-fps").onchange=e=>show($("fps"),e.target.checked);$("ipd").oninput=e=>{ipd=e.target.value/1000;$("ipd-value").value=e.target.value};
  $("audio-toggle").onclick=async e=>{const on=await audio.toggle();e.target.textContent=on?"השתקת האווירה":"הפעלת אווירה";if(!on&&!window.AudioContext&&!window.webkitAudioContext)hint("הדפדפן אינו תומך בצליל זה")};$("volume").oninput=e=>audio.volume(+e.target.value);document.querySelectorAll("[data-channel]").forEach(c=>c.onchange=e=>audio.channel(e.target.dataset.channel,e.target.checked));
