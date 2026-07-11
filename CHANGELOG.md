@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- Fourth main-menu experience: `מסע בתוך המקדש`, a ten-stop ground-level guided journey.
+- Human-height route from the outer wall through the entrance, porticoes, Ezrat Nashim, the fifteen steps, Shaar Nicanor, the Azara, the altar area and the final Heikhal viewpoint.
+- Dedicated journey controls for previous, pause/resume, continue, exit and progress.
+- Hebrew explanations with French subtitles at every journey stop.
+- Curved waypoint-based movement using `THREE.CatmullRomCurve3`.
+- A reconstructed opening in the eastern outer wall for the new route.
 - External mobile/desktop VR remote control with ephemeral Supabase Realtime pairing.
 - Remote commands for modes, tour stops, viewpoints, hotspots, recentering, quality, volume and exits.
 - Local stereo/fullscreen preparation before headset insertion.
