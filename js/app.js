@@ -1,9 +1,10 @@
 import{MODES,TOUR,HOTSPOTS,SAFE_VIEWS}from"./data.js";
 import{detectCapabilities,capabilityMarkup,requestOrientation}from"./compatibility.js";
+import{RemoteSession,createPairingToken,displayToken}from"./remote-session.js";
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const ui={loading:$("loading"),fatal:$("fatal"),menu:$("main-menu"),onboarding:$("onboarding"),top:$("topbar"),hint:$("hint"),tour:$("tour-controls"),panel:$("education-panel"),tools:$("explore-tools"),settings:$("settings"),stereoExit:$("stereo-exit")};
 let caps,renderer,scene,camera,eyeL,eyeR,clock,raf=0,mode="menu",quality="balanced",paused=false,tourIndex=0,tourPlaying=true,viewIndex=0,stereo=false,ipd=.064;
-let theta=.55,phi=1.04,radius=145,dTheta=0,dPhi=0,dRadius=0,target,fromPos,fromLook,toPos,toLook,transition=1,lastCaption="",hotspots=[],occluders=[],raycaster,pointer,gyroEnabled=false,tourDwell=0,hotspotIndex=-1;
+let theta=.55,phi=1.04,radius=145,dTheta=0,dPhi=0,dRadius=0,target,fromPos,fromLook,toPos,toLook,transition=1,lastCaption="",hotspots=[],occluders=[],raycaster,pointer,gyroEnabled=false,gyroHeadingOffset=0,tourDwell=0,hotspotIndex=-1,remoteSession=null,remoteUrl="";
 const tmp={q:null,e:null,q0:null,q1:null,axis:null,off:null,pos:null,next:null};
 const gyro={a:0,b:0,g:0,o:0,ok:false};
 function show(el,on=true){el.classList.toggle("hidden",!on)}
@@ -67,7 +68,7 @@ function openInfo(info){$("panel-kicker").textContent=info.kicker;$("panel-title
 function focus(info){fromPos.copy(camera.position);fromLook.copy(target);toPos.fromArray(info.p);toLook.fromArray(info.look);transition=0}
 function interruptTransition(){transition=1;if(mode==="tour")tourPlaying=false;updateTourUI()}
 function updateTourUI(){if(mode!=="tour")return;const t=TOUR[tourIndex];$("tour-counter").textContent=`${tourIndex+1} / ${TOUR.length}`;$("tour-progress").value=tourIndex+1;$("tour-pause").textContent=tourPlaying?"השהיה":"המשך";if(lastCaption!==t.id){openInfo(t);lastCaption=t.id}}
-function goTour(i){tourIndex=(i+TOUR.length)%TOUR.length;tourPlaying=true;tourDwell=0;focus(TOUR[tourIndex]);updateTourUI()}
+function goTour(i){tourIndex=(i+TOUR.length)%TOUR.length;tourPlaying=true;tourDwell=0;focus(TOUR[tourIndex]);updateTourUI();reportRemoteStatus()}
 function orientation(){gyro.o=THREE.MathUtils.degToRad(Number(screen.orientation?.angle??window.orientation??0))}
 function applyQuality(q){quality=q;localStorage.setItem("temple-quality",q);if(!renderer)return;const cfg={low:{dpr:1,shadow:false},balanced:{dpr:1.5,shadow:true},high:{dpr:2,shadow:true}}[q];renderer.setPixelRatio(Math.min(devicePixelRatio,cfg.dpr));renderer.shadowMap.enabled=cfg.shadow;scene?.getObjectByName("fire")?.children.forEach((f,i)=>f.visible=q!=="low"||i<4);resize()}
 function resize(){if(!renderer)return;const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
@@ -79,14 +80,44 @@ function animate(){
  scene.children.filter(o=>o.userData.baseY!==undefined).forEach(o=>o.position.y=o.userData.baseY+Math.sin(t*2+o.userData.phase)*.025);
  if(transition<1){transition=Math.min(1,transition+dt/.9);const k=transition*transition*(3-2*transition);camera.position.lerpVectors(fromPos,toPos,k);target.lerpVectors(fromLook,toLook,k)}
  else if(mode==="tour"&&tourPlaying){tourDwell+=dt;if(tourDwell>6)goTour(tourIndex+1);camera.lookAt(target)}
- else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
+ else if(gyroEnabled&&gyro.ok){tmp.e.set(gyro.b,gyro.a-gyroHeadingOffset,-gyro.g,"YXZ");tmp.q.setFromEuler(tmp.e).multiply(tmp.q1).multiply(tmp.q0.setFromAxisAngle(tmp.axis,-gyro.o));camera.quaternion.slerp(tmp.q,.45)}
  else{theta+=dTheta;phi+=dPhi;radius+=dRadius;dTheta*=.82;dPhi*=.82;dRadius*=.75;phi=Math.max(.18,Math.min(1.46,phi));radius=Math.max(18,Math.min(300,radius));camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));camera.lookAt(target)}
  hotspots.forEach(h=>{h.visible=mode==="explore";if(h.visible){h.scale.setScalar(1+.12*Math.sin(t*3+h.position.x));tmp.off.copy(h.position).sub(camera.position);tmp.dir.copy(tmp.off).normalize();raycaster.set(camera.position,tmp.dir);const block=raycaster.intersectObjects(occluders,true)[0];h.visible=!block||block.distance>=tmp.off.length()-.5}});
  if(stereo)renderStereo();else renderer.render(scene,camera)
 }
-function enterMode(next){mode=next;show(ui.menu,false);show(ui.onboarding,false);show(ui.top);show(ui.tools,next==="explore");show(ui.tour,next==="tour");show(ui.stereoExit,next==="stereo");show(ui.panel,next==="tour");$("mode-name").textContent=MODES[next].title;stereo=next==="stereo";if(stereo){applyQuality("low");startStereo()}if(next==="tour")goTour(0);else{target.set(0,14,-5);theta=.55;phi=1.04;radius=145;hint(next==="explore"?"גררו לסיבוב · צבטו או גללו לזום":"הזיזו את הראש או גררו כדי להביט")}}
+function enterMode(next){mode=next;show(ui.menu,false);show(ui.onboarding,false);show(ui.top);show(ui.tools,next==="explore");show(ui.tour,next==="tour");show(ui.stereoExit,next==="stereo");show(ui.panel,next==="tour");$("mode-name").textContent=MODES[next].title;stereo=next==="stereo";if(stereo){applyQuality("low");startStereo()}if(next==="tour")goTour(0);else{target.set(0,14,-5);theta=.55;phi=1.04;radius=145;hint(next==="explore"?"גררו לסיבוב · צבטו או גללו לזום":"הזיזו את הראש או גררו כדי להביט")}reportRemoteStatus()}
 async function startStereo(){gyroEnabled=await requestOrientation();if(!gyroEnabled)hint("חיישני תנועה אינם זמינים — אפשר לגרור את התצוגה",4000);try{await document.documentElement.requestFullscreen?.()}catch{}try{await screen.orientation?.lock?.("landscape")}catch{hint("לא ניתן לנעול לרוחב; סובבו את הטלפון ידנית",4000)}}
-function exitMode(){mode="menu";stereo=gyroEnabled=false;show(ui.top,false);show(ui.tools,false);show(ui.tour,false);show(ui.panel,false);show(ui.stereoExit,false);show(ui.menu);try{if(document.fullscreenElement)document.exitFullscreen()}catch{}try{screen.orientation?.unlock?.()}catch{}}
+function exitMode(){mode="menu";stereo=gyroEnabled=false;show(ui.top,false);show(ui.tools,false);show(ui.tour,false);show(ui.panel,false);show(ui.stereoExit,false);show(ui.menu);try{if(document.fullscreenElement)document.exitFullscreen()}catch{}try{screen.orientation?.unlock?.()}catch{}reportRemoteStatus()}
+function reportRemoteStatus(){
+ if(!remoteSession?.connected)return;
+ remoteSession.send("status",{mode,modeLabel:MODES[mode]?.title||"תפריט",tourIndex,quality,stereo,tourPlaying,at:Date.now()}).catch(()=>{});
+}
+async function createRemote(){
+ remoteSession?.disconnect();const token=createPairingToken();remoteUrl=new URL("./remote.html",location.href);remoteUrl.searchParams.set("session",token);
+ $("remote-code").value=displayToken(token);$("open-remote-page").href=remoteUrl.href;$("remote-state").classList.remove("connected");$("remote-state-text").textContent="ממתינים לחיבור השלט";
+ remoteSession=new RemoteSession(token,{onCommand:handleRemoteCommand});
+ try{await remoteSession.connect();$("remote-state-text").textContent="הערוץ מוכן — פתחו את הקישור בשלט"}catch(e){console.error(e);$("remote-state-text").textContent="החיבור נכשל — בדקו את האינטרנט"}
+}
+async function handleRemoteCommand(command={}){
+ const action=command.action,value=command.value;
+ if(action==="controllerConnected"){$("remote-state").classList.add("connected");$("remote-state-text").textContent="השלט מחובר";reportRemoteStatus();return}
+ if(action==="reportStatus"){reportRemoteStatus();return}
+ if(action==="mode"&&MODES[value])enterMode(value);
+ else if(action==="tourPrev")goTour(tourIndex-1);
+ else if(action==="tourNext")goTour(tourIndex+1);
+ else if(action==="tourPause")$("tour-pause").click();
+ else if(action==="tourStop"&&Number.isInteger(value))goTour(value);
+ else if(action==="overview")$("overview").click();
+ else if(action==="nextView")$("next-view").click();
+ else if(action==="nextHotspot")$("next-hotspot").click();
+ else if(action==="recenter"){gyroHeadingOffset=gyro.a;camera.quaternion.identity();hint("החיישן מורכז")}
+ else if(action==="quality"&&["low","balanced","high"].includes(value)){$("quality").value=value;applyQuality(value)}
+ else if(action==="volume"){const v=Math.max(0,Math.min(1,Number(value)));$("volume").value=v;audio.volume(v)}
+ else if(action==="audioToggle")$("audio-toggle").click();
+ else if(action==="exitStereo"&&stereo)exitMode();
+ else if(action==="menu")exitMode();
+ reportRemoteStatus();
+}
 class AudioAtmosphere{constructor(){this.ctx=null;this.master=null;this.nodes={};this.on=false}async toggle(){if(this.on){this.stop();return false}const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;this.ctx=new C;await this.ctx.resume();this.master=this.ctx.createGain();this.master.gain.value=+$("volume").value;this.master.connect(this.ctx.destination);for(const [name,freq,vol]of[["ambience",85,.025],["fire",190,.018],["crowd",125,.012],["narration",260,0]]){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=name==="fire"?"sawtooth":"sine";o.frequency.value=freq;g.gain.value=vol;o.connect(g).connect(this.master);o.start();this.nodes[name]={o,g,vol}}this.on=true;return true}stop(){Object.values(this.nodes).forEach(n=>n.o.stop());this.ctx?.close();this.nodes={};this.on=false}channel(n,on){if(this.nodes[n])this.nodes[n].g.gain.value=on?this.nodes[n].vol:0}volume(v){if(this.master)this.master.gain.value=v}}
 const audio=new AudioAtmosphere();
 function bindUI(){
@@ -94,6 +125,7 @@ function bindUI(){
  $("start-mode").onclick=e=>enterMode(e.currentTarget.dataset.mode);document.querySelector(".close-onboarding").onclick=()=>show(ui.onboarding,false);$("back-menu").onclick=exitMode;$("stereo-exit").onclick=exitMode;
  $("tour-prev").onclick=()=>goTour(tourIndex-1);$("tour-next").onclick=()=>goTour(tourIndex+1);$("tour-exit").onclick=exitMode;$("tour-pause").onclick=()=>{tourPlaying=!tourPlaying;if(tourPlaying&&transition>=1)goTour(tourIndex);updateTourUI()};
  $("close-panel").onclick=()=>show(ui.panel,false);$("overview").onclick=()=>focus({p:[135,78,155],look:[0,15,-10]});$("next-view").onclick=()=>{viewIndex=(viewIndex+1)%SAFE_VIEWS.length;const v=SAFE_VIEWS[viewIndex];focus(v);hint("נקודת מבט: "+v.name)};$("next-hotspot").onclick=()=>{hotspotIndex=(hotspotIndex+1)%HOTSPOTS.length;const h=HOTSPOTS[hotspotIndex];openInfo(h);focus(h)};
+ $("open-remote").onclick=()=>{show($("remote-setup"));if(!remoteSession)createRemote()};$("close-remote").onclick=()=>show($("remote-setup"),false);$("create-remote").onclick=createRemote;$("copy-remote").onclick=async()=>{if(!remoteUrl)return;await navigator.clipboard.writeText(remoteUrl);hint("הקישור הועתק")};$("share-remote").onclick=async()=>{if(!remoteUrl)return;try{await navigator.share?.({title:"שלט בית המקדש VR",url:remoteUrl})}catch{}};
  const openSettings=()=>show(ui.settings);$("open-settings").onclick=openSettings;$("settings-button").onclick=openSettings;$("close-settings").onclick=()=>show(ui.settings,false);
  $("quality").onchange=e=>applyQuality(e.target.value);$("show-fps").onchange=e=>show($("fps"),e.target.checked);$("ipd").oninput=e=>{ipd=e.target.value/1000;$("ipd-value").value=e.target.value};
  $("audio-toggle").onclick=async e=>{const on=await audio.toggle();e.target.textContent=on?"השתקת האווירה":"הפעלת אווירה";if(!on&&!window.AudioContext&&!window.webkitAudioContext)hint("הדפדפן אינו תומך בצליל זה")};$("volume").oninput=e=>audio.volume(+e.target.value);document.querySelectorAll("[data-channel]").forEach(c=>c.onchange=e=>audio.channel(e.target.dataset.channel,e.target.checked));
