@@ -15,3 +15,11 @@
 - **Expected user-visible effect:** A responsive Hebrew menu, clearer onboarding, controllable guided tour, interactive educational points, settings, graceful fallbacks and smoother mobile behavior.
 - **Tests performed:** Source validation and static compatibility inspection before browser regression pass.
 - **Remaining limitations:** Real WebXR and older Samsung hardware are unavailable; historical placement is educational/artistic; narration assets are intentionally absent.
+
+## 2026-07-12 — Browser verification refinements
+- **Affected files:** index.html, js/app.js, js/compatibility.js, TESTING.md
+- **Reason:** Address issues found during desktop interaction verification.
+- **Technical implementation:** Added keyboard-accessible hotspot cycling, automatic tour dwell controlled by pause/resume, reusable occlusion direction and occluder collections, and a deterministic WebGL-failure test hook.
+- **Expected user-visible effect:** Hotspots are reachable without precise pointer input; the guided tour truly pauses/resumes; smoother frames on constrained devices.
+- **Tests performed:** Menu, guided onboarding, next/previous controls, free exploration, human-height navigation, settings, capability report and console inspection.
+- **Remaining limitations:** Physical sensor/headset testing and automated viewport emulation remain unavailable.
