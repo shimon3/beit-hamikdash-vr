@@ -102,7 +102,7 @@ async function handleRemoteCommand(command={}){
  const action=command.action,value=command.value;
  if(action==="controllerConnected"){$("remote-state").classList.add("connected");$("remote-state-text").textContent="השלט מחובר";reportRemoteStatus();return}
  if(action==="reportStatus"){reportRemoteStatus();return}
- if(action==="mode"&&MODES[value])enterMode(value);
+ if(action==="mode"&&MODES[value]){show($("remote-setup"),false);enterMode(value)}
  else if(action==="tourPrev")goTour(tourIndex-1);
  else if(action==="tourNext")goTour(tourIndex+1);
  else if(action==="tourPause")$("tour-pause").click();
@@ -125,7 +125,7 @@ function bindUI(){
  $("start-mode").onclick=e=>enterMode(e.currentTarget.dataset.mode);document.querySelector(".close-onboarding").onclick=()=>show(ui.onboarding,false);$("back-menu").onclick=exitMode;$("stereo-exit").onclick=exitMode;
  $("tour-prev").onclick=()=>goTour(tourIndex-1);$("tour-next").onclick=()=>goTour(tourIndex+1);$("tour-exit").onclick=exitMode;$("tour-pause").onclick=()=>{tourPlaying=!tourPlaying;if(tourPlaying&&transition>=1)goTour(tourIndex);updateTourUI()};
  $("close-panel").onclick=()=>show(ui.panel,false);$("overview").onclick=()=>focus({p:[135,78,155],look:[0,15,-10]});$("next-view").onclick=()=>{viewIndex=(viewIndex+1)%SAFE_VIEWS.length;const v=SAFE_VIEWS[viewIndex];focus(v);hint("נקודת מבט: "+v.name)};$("next-hotspot").onclick=()=>{hotspotIndex=(hotspotIndex+1)%HOTSPOTS.length;const h=HOTSPOTS[hotspotIndex];openInfo(h);focus(h)};
- $("open-remote").onclick=()=>{show($("remote-setup"));if(!remoteSession)createRemote()};$("close-remote").onclick=()=>show($("remote-setup"),false);$("create-remote").onclick=createRemote;$("copy-remote").onclick=async()=>{if(!remoteUrl)return;await navigator.clipboard.writeText(remoteUrl);hint("הקישור הועתק")};$("share-remote").onclick=async()=>{if(!remoteUrl)return;try{await navigator.share?.({title:"שלט בית המקדש VR",url:remoteUrl})}catch{}};
+ $("open-remote").onclick=()=>{show($("remote-setup"));if(!remoteSession)createRemote()};$("close-remote").onclick=()=>show($("remote-setup"),false);$("create-remote").onclick=createRemote;$("prepare-stereo").onclick=()=>{show($("remote-setup"),false);enterMode("stereo")};$("copy-remote").onclick=async()=>{if(!remoteUrl)return;await navigator.clipboard.writeText(remoteUrl);hint("הקישור הועתק")};$("share-remote").onclick=async()=>{if(!remoteUrl)return;try{await navigator.share?.({title:"שלט בית המקדש VR",url:remoteUrl})}catch{}};
  const openSettings=()=>show(ui.settings);$("open-settings").onclick=openSettings;$("settings-button").onclick=openSettings;$("close-settings").onclick=()=>show(ui.settings,false);
  $("quality").onchange=e=>applyQuality(e.target.value);$("show-fps").onchange=e=>show($("fps"),e.target.checked);$("ipd").oninput=e=>{ipd=e.target.value/1000;$("ipd-value").value=e.target.value};
  $("audio-toggle").onclick=async e=>{const on=await audio.toggle();e.target.textContent=on?"השתקת האווירה":"הפעלת אווירה";if(!on&&!window.AudioContext&&!window.webkitAudioContext)hint("הדפדפן אינו תומך בצליל זה")};$("volume").oninput=e=>audio.volume(+e.target.value);document.querySelectorAll("[data-channel]").forEach(c=>c.onchange=e=>audio.channel(e.target.dataset.channel,e.target.checked));
