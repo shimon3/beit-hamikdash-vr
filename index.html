@@ -31,7 +31,7 @@
       <button class="mode-card" data-mode="explore"><span>✦</span><strong>סיור חופשי</strong><small>גלו מוקדי ידע ונקודות מבט</small></button>
       <button class="mode-card" data-mode="stereo"><span>◫</span><strong>מצב סטריאו לטלפון</strong><small>לתושבת Cardboard; אינו תמיכה מלאה ב־Gear VR</small></button>
     </div>
-    <button id="open-settings" class="text-button">הגדרות והתאמה למכשיר</button>
+    <div class="menu-actions"><button id="open-remote" class="primary">⌁ שלט חיצוני למשקפת</button><button id="open-settings" class="text-button">הגדרות והתאמה למכשיר</button></div>
     <div id="compat-summary" class="compat-summary" aria-live="polite"></div>
   </main>
 
@@ -41,6 +41,18 @@
       <p class="eyebrow" id="onboarding-kicker"></p><h2 id="onboarding-title"></h2>
       <p id="onboarding-copy"></p><ul id="onboarding-list"></ul>
       <button id="start-mode" class="primary">מתחילים</button>
+    </div>
+  </section>
+
+  <section id="remote-setup" class="screen onboarding hidden" role="dialog" aria-modal="true" aria-labelledby="remote-title">
+    <div class="modal remote-setup-card">
+      <button id="close-remote" class="icon-button" aria-label="סגירה">×</button>
+      <p class="eyebrow">REMOTE CONTROL</p><h2 id="remote-title">שלט חיצוני למשקפת</h2>
+      <p>פתחו את הקישור בטלפון או במחשב אחר לפני הכנסת המכשיר למשקפת.</p>
+      <div id="remote-state" class="remote-pair-state"><span id="remote-dot"></span><strong id="remote-state-text">השלט עדיין לא מחובר</strong></div>
+      <label>קוד חיבור<input id="remote-code" readonly></label>
+      <div class="remote-actions"><button id="create-remote" class="primary">יצירת שלט חדש</button><button id="share-remote">שיתוף קישור</button><button id="copy-remote">העתקת קישור</button><a id="open-remote-page" target="_blank" rel="noopener">פתיחת השלט כאן</a></div>
+      <small>הקוד אקראי וזמני. סגירת דף המשקפת מסיימת את השליטה.</small>
     </div>
   </section>
 
