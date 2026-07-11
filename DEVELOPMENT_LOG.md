@@ -23,3 +23,11 @@
 - **Expected user-visible effect:** Hotspots are reachable without precise pointer input; the guided tour truly pauses/resumes; smoother frames on constrained devices.
 - **Tests performed:** Menu, guided onboarding, next/previous controls, free exploration, human-height navigation, settings, capability report and console inspection.
 - **Remaining limitations:** Physical sensor/headset testing and automated viewport emulation remain unavailable.
+
+## 2026-07-12 — Vercel preview verification
+- **Affected files:** DEVELOPMENT_LOG.md, TESTING.md
+- **Reason:** Verify the automatically deployed branch preview.
+- **Technical implementation:** Followed the Vercel Ready deployment URL published on PR #1 and inspected the response.
+- **Expected user-visible effect:** None.
+- **Tests performed:** Vercel deployment status and preview navigation.
+- **Remaining limitations:** The preview is protected by Vercel authentication, so anonymous end-to-end rendering could not be verified; local static serving remains successful.
