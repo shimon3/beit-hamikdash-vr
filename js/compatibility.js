@@ -1,4 +1,5 @@
-export function webglAvailable(){\n if(new URLSearchParams(location.search).has("forceWebglError"))return false;
+export function webglAvailable(){
+ if(new URLSearchParams(location.search).has("forceWebglError"))return false;
  try{const c=document.createElement("canvas");return !!(window.WebGLRenderingContext&&(c.getContext("webgl")||c.getContext("experimental-webgl")));}catch{return false;}
 }
 export async function detectCapabilities(){
