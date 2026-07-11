@@ -31,3 +31,11 @@
 - **Expected user-visible effect:** None.
 - **Tests performed:** Vercel deployment status and preview navigation.
 - **Remaining limitations:** The preview is protected by Vercel authentication, so anonymous end-to-end rendering could not be verified; local static serving remains successful.
+
+## 2026-07-12 — External VR remote control
+- **Affected files:** index.html, styles.css, remote.html, remote.css, js/remote-session.js, js/remote-controller.js, js/app.js, ARCHITECTURE.md, TESTING.md
+- **Reason:** Keep the experience controllable after the phone is placed inside a headset.
+- **Technical implementation:** Added an ephemeral Supabase Realtime Broadcast session using a cryptographically random pairing token, a separate Hebrew/French control page, headset status reporting and remote commands for modes, tour, viewpoints, hotspots, quality, audio and VR exit. Only the browser-safe publishable key is committed; no service key or personal data is stored.
+- **Expected user-visible effect:** A second phone or computer can control the headset without touching it.
+- **Tests performed:** Planned two-tab pairing, command delivery, reconnect/error states and existing local regression suite.
+- **Remaining limitations:** Control requires internet access; pairing links grant control until the headset page closes; production should later add authenticated private channels if persistent accounts are required.
