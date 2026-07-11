@@ -30,3 +30,20 @@
 
 ## Limitations
 The connected browser did not expose viewport-resizing or touch-emulation controls, so 360×800, 390×844, 800×360 and 844×390 were verified through responsive-rule inspection rather than screenshots. Physical touch, device orientation, WebXR hardware, thermal behavior, Gear VR/Cardboard comfort and older Samsung performance require real-device testing. The historical reconstruction remains an educational artistic interpretation.
+
+## External remote-control results
+
+| Test | Result | Notes |
+|---|---|---|
+| Supabase project health | Pass | Dedicated eu-central-1 project is ACTIVE_HEALTHY. |
+| Supabase advisors | Pass | No security or performance lints. |
+| Pairing token | Pass | 128-bit Web Crypto token, formatted for display and shared in URL. |
+| Two-page Realtime connection | Pass | Headset and controller subscribed to the same ephemeral Broadcast topic. |
+| Connection status | Pass | Controller and headset both displayed connected state. |
+| Remote mode selection | Pass | Controller changed headset from stereo to guided tour. |
+| Remote tour navigation | Pass | Next command moved headset to stop 2 / 7. |
+| Remote quality | Pass | Controller changed headset quality to High. |
+| Local stereo preparation | Pass with fallback | Local gesture entered stereo; unavailable landscape lock produced Hebrew guidance. |
+| Console | Pass | No new errors or warnings in either page. |
+
+Remote control requires internet access and possession of the pairing link. Fullscreen must be prepared locally because browsers do not allow a WebSocket message to satisfy the user-gesture requirement.
