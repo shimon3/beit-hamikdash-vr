@@ -39,3 +39,11 @@
 - **Expected user-visible effect:** A second phone or computer can control the headset without touching it.
 - **Tests performed:** Planned two-tab pairing, command delivery, reconnect/error states and existing local regression suite.
 - **Remaining limitations:** Control requires internet access; pairing links grant control until the headset page closes; production should later add authenticated private channels if persistent accounts are required.
+
+## 2026-07-12 — Remote headset preparation refinement
+- **Affected files:** index.html, js/app.js, TESTING.md
+- **Reason:** Fullscreen requires a local user gesture on mobile and the pairing dialog must not cover remotely selected content.
+- **Technical implementation:** Added a local prepare-stereo action before headset insertion and automatically closes pairing UI when the controller selects an experience.
+- **Expected user-visible effect:** The phone enters stereo/fullscreen while still touchable, then stays unobstructed under remote control.
+- **Tests performed:** Two-tab Realtime connection and remote guided-tour activation.
+- **Remaining limitations:** Browser permission behavior varies by mobile vendor; orientation lock may still require manual landscape rotation.
