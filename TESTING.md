@@ -10,7 +10,7 @@
 | Test | Result | Notes |
 |---|---|---|
 | JavaScript syntax | Pass | node --check for app.js, data.js and compatibility.js. |
-| Static load / Vercel structure | Pass | Framework-free files load from local static server. |
+| Static load / Vercel structure | Pass with limitation | Local static server passes; Vercel reports Ready, but its preview requires Vercel authentication. |
 | Hebrew RTL menu | Pass | Three distinct accessible mode buttons and onboarding dialogs. |
 | Three.js startup | Pass | Menu appears after guarded renderer initialization; no new console errors. |
 | Forced WebGL failure | Pass | ?forceWebglError=1 shows Hebrew recovery screen and retry. |
