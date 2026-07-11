@@ -1,806 +1,102 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0d1524">
-<title>בית המקדש VR — Beit HaMikdash</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --gold:#d4af37; --gold-soft:#e7cf8c; --stone:#e8dcc0;
-    --ink:#0d1524; --ink-soft:rgba(13,21,36,.82);
-  }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{width:100%;height:100%;overflow:hidden;background:#0d1524;
-    font-family:'Heebo',system-ui,sans-serif;color:#f4ecd8}
-  canvas{display:block;touch-action:none}
-
-  /* ---------- écran d'accueil ---------- */
-  #start{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;text-align:center;gap:18px;
-    background:radial-gradient(ellipse at 50% 30%, #1d2c47 0%, #0d1524 70%);
-    transition:opacity .8s ease}
-  #start.hide{opacity:0;pointer-events:none}
-  #start .crown{font-size:14px;letter-spacing:.35em;color:var(--gold-soft);font-weight:300}
-  #start h1{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:clamp(44px,10vw,84px);
-    color:var(--gold);line-height:1.05;text-shadow:0 0 40px rgba(212,175,55,.25)}
-  #start .sub{font-size:15px;color:#cdbf9d;max-width:300px;line-height:1.7;font-weight:300}
-  #enter{margin-top:14px;padding:14px 46px;font-size:18px;font-weight:600;font-family:'Heebo',sans-serif;
-    color:var(--ink);background:linear-gradient(180deg,#e7cf8c,#c9a02f);border:none;border-radius:40px;
-    cursor:pointer;box-shadow:0 6px 24px rgba(212,175,55,.35)}
-  #enter:active{transform:scale(.97)}
-  #start .hint{font-size:12px;color:#7d745a;margin-top:6px}
-
-  /* ---------- HUD ---------- */
-  #hud{position:fixed;inset:0;z-index:20;pointer-events:none;opacity:0;transition:opacity .8s}
-  #hud.show{opacity:1}
-  #title{position:absolute;top:calc(12px + env(safe-area-inset-top));right:16px;text-align:right}
-  #title .t1{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:22px;color:var(--gold)}
-  #title .t2{font-size:11px;color:#cdbf9d;font-weight:300;letter-spacing:.08em}
-
-  #caption{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);
-    background:var(--ink-soft);border:1px solid rgba(212,175,55,.45);color:var(--gold-soft);
-    padding:10px 22px;border-radius:30px;font-size:15px;font-weight:400;white-space:nowrap;
-    opacity:0;transition:opacity .5s;backdrop-filter:blur(6px)}
-  #caption.show{opacity:1}
-
-  #bar{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;
-    transform:translateX(-50%);display:flex;gap:10px;pointer-events:auto}
-  .btn{width:54px;height:54px;border-radius:50%;border:1px solid rgba(212,175,55,.5);
-    background:var(--ink-soft);color:var(--gold-soft);font-size:21px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);
-    transition:background .2s, transform .1s;position:relative}
-  .btn small{position:absolute;bottom:-16px;font-size:9px;color:#bdae8c;font-family:'Heebo';white-space:nowrap}
-  .btn:active{transform:scale(.93)}
-  .btn.on{background:linear-gradient(180deg,#e7cf8c,#c9a02f);color:var(--ink)}
-
-  /* ---------- panneau info ---------- */
-  #info{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:62vh;overflow-y:auto;
-    background:linear-gradient(180deg, rgba(16,24,40,.96), rgba(10,16,28,.98));
-    border-top:1px solid rgba(212,175,55,.5);border-radius:22px 22px 0 0;
-    padding:26px 24px calc(30px + env(safe-area-inset-bottom));
-    transform:translateY(105%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
-  #info.open{transform:translateY(0)}
-  #info h2{font-family:'Frank Ruhl Libre',serif;color:var(--gold);font-size:24px;margin-bottom:4px}
-  #info .en{font-size:11px;color:#9d8f6d;letter-spacing:.12em;margin-bottom:16px}
-  #info h3{color:var(--gold-soft);font-size:16px;margin:16px 0 4px;font-weight:600}
-  #info p{font-size:14px;line-height:1.85;color:#e5dcc3;font-weight:300}
-  #closeInfo{position:absolute;top:14px;left:16px;background:none;border:none;color:#bdae8c;
-    font-size:22px;cursor:pointer}
-
-  #vrExit{position:fixed;top:calc(14px + env(safe-area-inset-top));left:14px;z-index:40;display:none;
-    padding:8px 18px;border-radius:24px;border:1px solid rgba(212,175,55,.5);
-    background:var(--ink-soft);color:var(--gold-soft);font-size:13px;font-family:'Heebo'}
-  .divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.4),transparent);margin:14px 0}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101829">
+  <meta name="description" content="חוויה חינוכית תלת־ממדית של בית המקדש השני">
+  <title>בית המקדש — חוויה תלת־ממדית</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-menu">דלגו לתפריט</a>
+  <canvas id="scene" aria-label="שחזור תלת־ממדי אינטראקטיבי של בית המקדש"></canvas>
 
-<div id="start">
-  <div class="crown">מ ב ו ס ס &nbsp;ע ל &nbsp;ב י ת &nbsp;ש נ י</div>
-  <h1>בית המקדש</h1>
-  <div class="sub">שחזור תלת־ממדי של הר הבית בתפארתו — ההיכל, המזבח והכהנים בעבודתם</div>
-  <button id="enter">כניסה למקדש</button>
-  <div class="hint" style="color:#7d745a;font-size:12px">גררו לסיבוב · צבטו לזום · 🎧 מצב Gear VR</div>
-</div>
-
-<div id="hud">
-  <div id="title"><div class="t1">בית המקדש</div><div class="t2">JERUSALEM · 3D EXPERIENCE</div></div>
-  <div id="caption"></div>
-  <div id="bar">
-    <button class="btn" id="bInfo">ℹ️<small>מידע</small></button>
-    <button class="btn on" id="bLabels">🏷️<small>תוויות</small></button>
-    <button class="btn" id="bTour">🎬<small>סיור</small></button>
-    <button class="btn" id="bGyro">📱<small>גירו</small></button>
-    <button class="btn" id="bVR">🎧<small>VR</small></button>
+  <div id="loading" class="screen status-screen" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div><h1>בונים את ירושלים…</h1><p id="loading-text">טוענים את החוויה</p>
   </div>
-</div>
+  <section id="fatal" class="screen status-screen hidden" role="alert">
+    <span class="status-icon">⚠</span><h1>לא הצלחנו לפתוח את החוויה</h1>
+    <p id="fatal-message">הדפדפן אינו תומך בתצוגה התלת־ממדית.</p>
+    <button id="retry" class="primary">נסו שוב</button>
+  </section>
 
-<button id="vrExit">✕ יציאה מ־VR</button>
+  <main id="main-menu" class="screen menu hidden" aria-labelledby="menu-title">
+    <p class="eyebrow">ירושלים · תקופת בית שני</p>
+    <h1 id="menu-title">בית המקדש</h1>
+    <p class="lead">מסע חינוכי תלת־ממדי אל ההיכל, המזבח ועבודת הכהנים</p>
+    <div class="mode-grid">
+      <button class="mode-card primary-card" data-mode="tour"><span>◉</span><strong>סיור מודרך</strong><small>שבע תחנות עם הסברים</small></button>
+      <button class="mode-card" data-mode="explore"><span>✦</span><strong>סיור חופשי</strong><small>גלו מוקדי ידע ונקודות מבט</small></button>
+      <button class="mode-card" data-mode="stereo"><span>◫</span><strong>מצב סטריאו לטלפון</strong><small>לתושבת Cardboard; אינו תמיכה מלאה ב־Gear VR</small></button>
+    </div>
+    <button id="open-settings" class="text-button">הגדרות והתאמה למכשיר</button>
+    <div id="compat-summary" class="compat-summary" aria-live="polite"></div>
+  </main>
 
-<div id="info">
-  <button id="closeInfo">✕</button>
-  <h2>בית המקדש השני</h2>
-  <div class="en">THE SECOND TEMPLE · HERODIAN PERIOD</div>
-  <p>שחזור אמנותי של בית המקדש השני בשיא תפארתו, לאחר הרחבת הורדוס. חז"ל אמרו: "מי שלא ראה בניין הורדוס — לא ראה בניין נאה מימיו".</p>
-  <h3>🏛️ ההיכל</h3>
-  <p>מבנה הקודש, גובהו כמאה אמה, וחזיתו מצופה זהב. בתוכו הקודש ובו המנורה, השולחן ומזבח הזהב — ולפנים ממנו קודש הקודשים, שאליו נכנס הכהן הגדול ביום הכיפורים בלבד.</p>
-  <h3>🔥 המזבח והכבש</h3>
-  <p>מזבח העולה עמד בעזרה, ואש התמיד דלקה עליו יומם ולילה. הכהנים עלו אליו בכבש — המדרון המשופע שבצד דרום — ובכל בוקר הקריבו את קרבן התמיד.</p>
-  <h3>👳 הכהנים</h3>
-  <p>הכהנים, לבושי בגדי לבן — כתונת, אבנט ומגבעת — עבדו במשמרות. הכהן הגדול לבש שמונה בגדים ובהם החושן, האפוד ומעיל התכלת עם פעמוני הזהב.</p>
-  <h3>🚪 עזרת נשים ושער ניקנור</h3>
-  <p>הבאים למקדש נכנסו תחילה לעזרת נשים, ומשם עלו בחמש עשרה מעלות עגולות — כנגד שירי המעלות שבתהילים — אל שער ניקנור ואל העזרה.</p>
-  <div class="divider"></div>
-  <p style="font-size:12px;color:#9d8f6d">שחזור אמנותי להמחשה חינוכית · תואם Samsung Gear VR — פתחו בדפדפן הנייד, הפעילו מצב 🎧 והכניסו את המכשיר למשקפת.</p>
-</div>
+  <section id="onboarding" class="screen onboarding hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div class="modal">
+      <button class="icon-button close-onboarding" aria-label="סגירה">×</button>
+      <p class="eyebrow" id="onboarding-kicker"></p><h2 id="onboarding-title"></h2>
+      <p id="onboarding-copy"></p><ul id="onboarding-list"></ul>
+      <button id="start-mode" class="primary">מתחילים</button>
+    </div>
+  </section>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script>
-/* ============================================================
-   בית המקדש VR — Beit HaMikdash 3D
-   Single-file Three.js experience · Gear VR compatible
-   ============================================================ */
-(function(){
-'use strict';
+  <header id="topbar" class="topbar hidden">
+    <button id="back-menu" class="hud-button">⌂ <span>תפריט</span></button>
+    <div class="brand"><strong>בית המקדש</strong><small id="mode-name">סיור חופשי</small></div>
+    <button id="settings-button" class="hud-button" aria-label="הגדרות">⚙</button>
+  </header>
 
-/* ---------- renderer / scene / camera ---------- */
-const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputEncoding = THREE.sRGBEncoding;
-document.body.appendChild(renderer.domElement);
+  <div id="hint" class="hint hidden" role="status" aria-live="polite"></div>
+  <div id="fps" class="fps hidden">0 FPS</div>
 
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xe9d9b4, 260, 900);
+  <nav id="tour-controls" class="tour-controls hidden" aria-label="בקרת הסיור">
+    <div class="progress-wrap"><span id="tour-counter">1 / 7</span><progress id="tour-progress" max="7" value="1"></progress></div>
+    <div class="control-row">
+      <button id="tour-exit" aria-label="יציאה מהסיור">יציאה</button>
+      <button id="tour-prev" aria-label="התחנה הקודמת">הקודם</button>
+      <button id="tour-pause" class="primary" aria-label="השהיית הסיור">השהיה</button>
+      <button id="tour-next" aria-label="התחנה הבאה">הבא</button>
+    </div>
+  </nav>
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 2000);
-const eyeL = camera.clone(), eyeR = camera.clone();
+  <aside id="education-panel" class="panel hidden" aria-labelledby="panel-title">
+    <button id="close-panel" class="icon-button" aria-label="סגירת המידע">×</button>
+    <p id="panel-kicker" class="eyebrow"></p><h2 id="panel-title"></h2><p id="panel-copy"></p>
+  </aside>
 
-/* ---------- lumière d'aube dorée ---------- */
-const hemi = new THREE.HemisphereLight(0xfff3d6, 0x8a7550, 0.55);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffe3b0, 1.15);
-sun.position.set(140, 180, 120);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -180; sun.shadow.camera.right = 180;
-sun.shadow.camera.top = 180;  sun.shadow.camera.bottom = -180;
-sun.shadow.camera.far = 600;
-sun.shadow.bias = -0.0004;
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0xbfd4ff, 0.25);
-fill.position.set(-100, 60, -80);
-scene.add(fill);
+  <div id="explore-tools" class="explore-tools hidden">
+    <button id="overview" class="hud-button">⌖ <span>מבט־על</span></button>
+    <button id="next-view" class="hud-button">♙ <span>גובה אדם</span></button>
+  </div>
 
-/* ---------- ciel ---------- */
-const sky = new THREE.Mesh(
-  new THREE.SphereGeometry(950, 32, 20),
-  new THREE.ShaderMaterial({
-    side: THREE.BackSide, depthWrite:false, fog:false,
-    uniforms:{ top:{value:new THREE.Color(0x2a4d7f)}, mid:{value:new THREE.Color(0x9fb8d8)},
-               low:{value:new THREE.Color(0xf6c88a)} },
-    vertexShader:`varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-    fragmentShader:`varying vec3 vP; uniform vec3 top,mid,low;
-      void main(){ float h=normalize(vP).y;
-        vec3 c = h>0.25 ? mix(mid,top,smoothstep(0.25,0.9,h))
-                        : mix(low,mid,smoothstep(-0.05,0.25,h));
-        gl_FragColor=vec4(c,1.0);}`
-  })
-);
-scene.add(sky);
-// soleil visible
-const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-  map:(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
-    const r=g.createRadialGradient(64,64,4,64,64,64);
-    r.addColorStop(0,'rgba(255,244,214,1)');r.addColorStop(.25,'rgba(255,220,150,.85)');r.addColorStop(1,'rgba(255,200,120,0)');
-    g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})(),
-  fog:false, depthWrite:false, transparent:true
-}));
-sunGlow.scale.set(220,220,1);
-sunGlow.position.set(520, 380, 430);
-scene.add(sunGlow);
+  <button id="stereo-exit" class="stereo-exit hidden">× יציאה ממצב סטריאו</button>
 
-/* ---------- matériaux « pierre de Jérusalem » ---------- */
-function stoneTexture(base, joint){
-  const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
-  g.fillStyle=base; g.fillRect(0,0,256,256);
-  for(let i=0;i<900;i++){ g.fillStyle='rgba(0,0,0,'+(Math.random()*0.05)+')';
-    g.fillRect(Math.random()*256, Math.random()*256, 2, 2); }
-  g.strokeStyle=joint; g.lineWidth=2;
-  for(let y=0;y<256;y+=32){ g.beginPath();g.moveTo(0,y);g.lineTo(256,y);g.stroke();
-    const off=(y/32)%2?16:0;
-    for(let x=off;x<256;x+=64){ g.beginPath();g.moveTo(x,y);g.lineTo(x,y+32);g.stroke(); } }
-  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
-}
-const texStone = stoneTexture('#dccba4','rgba(120,100,64,.45)');
-const texMarble = stoneTexture('#f2ede1','rgba(160,150,128,.3)');
+  <section id="settings" class="panel settings hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <button id="close-settings" class="icon-button" aria-label="סגירת ההגדרות">×</button>
+    <h2 id="settings-title">הגדרות</h2>
+    <label>איכות תצוגה<select id="quality"><option value="low">חסכונית</option><option value="balanced">מאוזנת</option><option value="high">גבוהה</option></select></label>
+    <label class="check"><input id="show-fps" type="checkbox"> הצגת מד ביצועים</label>
+    <div class="setting-group"><h3>צליל אופציונלי</h3>
+      <button id="audio-toggle">הפעלת אווירה</button>
+      <label>עוצמה כללית<input id="volume" type="range" min="0" max="1" step=".05" value=".45"></label>
+      <div class="channel-grid">
+        <label><input type="checkbox" data-channel="ambience" checked> אווירה</label>
+        <label><input type="checkbox" data-channel="fire" checked> אש</label>
+        <label><input type="checkbox" data-channel="crowd" checked> קהל</label>
+        <label><input type="checkbox" data-channel="narration" checked> קריינות</label>
+      </div>
+      <small>הצליל נוצר מקומית בדפדפן ואינו מתחיל ללא אישור.</small>
+    </div>
+    <label>מרחק עיניים בסטריאו <output id="ipd-value">64</output> מ״מ<input id="ipd" type="range" min="52" max="76" value="64"></label>
+    <div id="capabilities" class="capabilities"></div>
+  </section>
 
-function stoneMat(rep=[4,2]){ const t=texStone.clone(); t.needsUpdate=true; t.repeat.set(rep[0],rep[1]);
-  return new THREE.MeshStandardMaterial({map:t, roughness:.92, metalness:0}); }
-function marbleMat(rep=[4,2]){ const t=texMarble.clone(); t.needsUpdate=true; t.repeat.set(rep[0],rep[1]);
-  return new THREE.MeshStandardMaterial({map:t, roughness:.75, metalness:.05}); }
-const MAT = {
-  gold: new THREE.MeshStandardMaterial({color:0xd9b44a, metalness:.9, roughness:.28,
-        emissive:0x332200, emissiveIntensity:.15}),
-  goldDark: new THREE.MeshStandardMaterial({color:0xb8912f, metalness:.85, roughness:.4}),
-  dark: new THREE.MeshStandardMaterial({color:0x1c1610, roughness:1}),
-  ground: new THREE.MeshStandardMaterial({color:0xcbb98d, roughness:1}),
-  hills: new THREE.MeshStandardMaterial({color:0xb3a077, roughness:1}),
-  white: new THREE.MeshStandardMaterial({color:0xf6f2e8, roughness:.6}),
-  skin: new THREE.MeshStandardMaterial({color:0xd9a878, roughness:.8}),
-  techelet: new THREE.MeshStandardMaterial({color:0x2b4c8c, roughness:.7}),
-  crimson: new THREE.MeshStandardMaterial({color:0x8c2b2b, roughness:.7}),
-  bronze: new THREE.MeshStandardMaterial({color:0x9c6b3a, metalness:.8, roughness:.45})
-};
-
-/* ---------- helpers ---------- */
-function box(w,h,d,mat,x,y,z,shadow=true){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-  m.position.set(x,y,z); m.castShadow=shadow; m.receiveShadow=true; scene.add(m); return m;
-}
-function cyl(rt,rb,h,mat,x,y,z,seg=20){
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);
-  m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; scene.add(m); return m;
-}
-
-/* ============================================================
-   PAYSAGE : collines de Judée + esplanade du Har HaBayit
-   ============================================================ */
-const ground = new THREE.Mesh(new THREE.CylinderGeometry(900,900,4,48), MAT.ground);
-ground.position.y=-14; ground.receiveShadow=true; scene.add(ground);
-for(let i=0;i<26;i++){
-  const a=Math.random()*Math.PI*2, r=380+Math.random()*380;
-  const h=26+Math.random()*60, w=90+Math.random()*160;
-  const hill=new THREE.Mesh(new THREE.SphereGeometry(w,14,10), MAT.hills);
-  hill.scale.y=h/w; hill.position.set(Math.cos(a)*r,-14,Math.sin(a)*r);
-  hill.receiveShadow=true; scene.add(hill);
-}
-
-/* esplanade */
-const PLAT_W=290, PLAT_D=210;
-box(PLAT_W,14,PLAT_D, stoneMat([18,2]), 0,-7,0).receiveShadow=true;
-const floor=box(PLAT_W-4,1,PLAT_D-4, stoneMat([26,20]), 0,0.0,0,false);
-floor.receiveShadow=true;
-
-/* murs extérieurs + colonnades (portiques) */
-(function colonnades(){
-  const roofMat=stoneMat([20,1]);
-  const edges=[
-    {x:0, z:-PLAT_D/2+6, w:PLAT_W-8, rot:0},
-    {x:0, z: PLAT_D/2-6, w:PLAT_W-8, rot:0},
-    {x:-PLAT_W/2+6, z:0, w:PLAT_D-8, rot:Math.PI/2},
-    {x: PLAT_W/2-6, z:0, w:PLAT_D-8, rot:Math.PI/2}
-  ];
-  edges.forEach(e=>{
-    const g=new THREE.Group();
-    const n=Math.floor(e.w/14);
-    for(let i=0;i<=n;i++){
-      const px=-e.w/2+i*(e.w/n);
-      const c=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.5,11,12), marbleMat([1,1]));
-      c.position.set(px,6,0); c.castShadow=true; g.add(c);
-      const cap=new THREE.Mesh(new THREE.BoxGeometry(3.4,1,3.4), MAT.white);
-      cap.position.set(px,11.6,0); g.add(cap);
-    }
-    const roof=new THREE.Mesh(new THREE.BoxGeometry(e.w+8,1.6,10), roofMat);
-    roof.position.y=12.8; roof.castShadow=true; g.add(roof);
-    g.position.set(e.x,0.5,e.z); g.rotation.y=e.rot; scene.add(g);
-  });
-})();
-
-/* ============================================================
-   EZRAT NASHIM (parvis des femmes) — côté est (+z)
-   ============================================================ */
-const EN={x0:-40,x1:40,z0:36,z1:96};
-(function ezratNashim(){
-  const wall=stoneMat([10,1]);
-  const h=9;
-  box(EN.x1-EN.x0, h, 2.5, wall, 0, h/2+0.5, EN.z1);                    // mur est
-  box(2.5, h, EN.z1-EN.z0, wall, EN.x0, h/2+0.5, (EN.z0+EN.z1)/2);      // nord
-  box(2.5, h, EN.z1-EN.z0, wall, EN.x1, h/2+0.5, (EN.z0+EN.z1)/2);      // sud
-  // porte est (Shaar HaMizrach)
-  box(10, 12, 4, marbleMat([2,2]), 0, 6.5, EN.z1);
-  box(6, 8.5, 4.4, MAT.dark, 0, 4.7, EN.z1, false);
-  box(12, 2, 5, MAT.gold, 0, 13, EN.z1);
-  // 4 chambres d'angle (lishkot)
-  [[EN.x0+8,EN.z0+8],[EN.x1-8,EN.z0+8],[EN.x0+8,EN.z1-8],[EN.x1-8,EN.z1-8]].forEach(p=>{
-    box(13, 8, 13, stoneMat([3,2]), p[0], 4.5, p[1]);
-  });
-})();
-
-/* 15 marches semi-circulaires vers Shaar Nicanor */
-(function maalot(){
-  for(let i=0;i<15;i++){
-    const r=20-i*1.0, h=0.42;
-    const step=new THREE.Mesh(
-      new THREE.CylinderGeometry(r, r, h, 40, 1, false, 0, Math.PI), marbleMat([6,1]));
-    step.rotation.y=-Math.PI/2;            // arc tourné vers +z (Ezrat Nashim)
-    step.position.set(0, 0.6+i*h, EN.z0-1);
-    step.castShadow=true; step.receiveShadow=true; scene.add(step);
-  }
-})();
-
-/* ============================================================
-   AZARA (parvis des prêtres) — surélevée
-   ============================================================ */
-const AZ={x0:-46,x1:46,z0:-84,z1:36, y:6.9};
-(function azara(){
-  // socle
-  box(AZ.x1-AZ.x0, AZ.y, AZ.z1-AZ.z0, stoneMat([14,1]),
-      0, AZ.y/2, (AZ.z0+AZ.z1)/2);
-  const wall=stoneMat([12,1]); const h=8;
-  box(AZ.x1-AZ.x0, h, 2.5, wall, 0, AZ.y+h/2, AZ.z0);                       // ouest (derrière Heichal)
-  box(2.5, h, AZ.z1-AZ.z0, wall, AZ.x0, AZ.y+h/2, (AZ.z0+AZ.z1)/2);
-  box(2.5, h, AZ.z1-AZ.z0, wall, AZ.x1, AZ.y+h/2, (AZ.z0+AZ.z1)/2);
-  // mur est avec Shaar Nicanor (bronze)
-  box((AZ.x1-AZ.x0)/2-9, h, 2.5, wall, -( (AZ.x1-AZ.x0)/4 +4.5), AZ.y+h/2, AZ.z1);
-  box((AZ.x1-AZ.x0)/2-9, h, 2.5, wall,  ( (AZ.x1-AZ.x0)/4 +4.5), AZ.y+h/2, AZ.z1);
-  box(18, 13, 4, marbleMat([3,2]), 0, AZ.y+6.5, AZ.z1);      // portique Nicanor
-  box(10, 9.5, 4.5, MAT.dark, 0, AZ.y+4.9, AZ.z1, false);
-  const doorL=box(4.6, 9, 0.7, MAT.bronze, -2.6, AZ.y+4.7, AZ.z1+2.1);
-  const doorR=box(4.6, 9, 0.7, MAT.bronze,  2.6, AZ.y+4.7, AZ.z1+2.1);
-  doorL.rotation.y= 0.5; doorR.rotation.y=-0.5;
-  box(20, 2.2, 5, MAT.gold, 0, AZ.y+14, AZ.z1);
-})();
-
-/* ============================================================
-   MIZBEACH (autel) + Kevesh (rampe) + feu + fumée
-   ============================================================ */
-const ALT={x:12, z:6, top:AZ.y+9.2};
-(function mizbeach(){
-  const m=stoneMat([4,2]);
-  box(19,3.2,19, m, ALT.x, AZ.y+1.6, ALT.z);            // yessod
-  box(17,3.2,17, m, ALT.x, AZ.y+4.8, ALT.z);            // sovev
-  box(15,3.2,15, m, ALT.x, AZ.y+7.9, ALT.z);            // corps
-  // ligne rouge (chout hasikra)
-  box(15.2,0.35,15.2, MAT.crimson, ALT.x, AZ.y+6.4, ALT.z, false);
-  // keranot (4 cornes)
-  [[-6.9,-6.9],[6.9,-6.9],[-6.9,6.9],[6.9,6.9]].forEach(p=>{
-    box(1.6,1.6,1.6, m, ALT.x+p[0], AZ.y+10.3, ALT.z+p[1]);
-  });
-  // kevesh — rampe au sud (+x)
-  const ramp=new THREE.Mesh(new THREE.BoxGeometry(24, 1.6, 8), stoneMat([5,1]));
-  ramp.position.set(ALT.x+19.5, AZ.y+4.7, ALT.z);
-  ramp.rotation.z=Math.atan2(8.7,23);
-  ramp.castShadow=ramp.receiveShadow=true; scene.add(ramp);
-  // bûcher
-  box(6,1.2,6, MAT.dark, ALT.x, ALT.top+0.5, ALT.z, false);
-})();
-
-/* feu de l'autel */
-const fire=new THREE.Group();
-const flameMats=[0xffdf80,0xffa030,0xff6a1a].map(c=>
-  new THREE.MeshBasicMaterial({color:c, transparent:true, opacity:.85, fog:false}));
-const flames=[];
-for(let i=0;i<7;i++){
-  const f=new THREE.Mesh(new THREE.ConeGeometry(0.9+Math.random()*0.9, 3.5+Math.random()*2.5, 7),
-                         flameMats[i%3]);
-  f.position.set((Math.random()-0.5)*3.4, 2, (Math.random()-0.5)*3.4);
-  f.userData={s:0.6+Math.random(), p:Math.random()*6};
-  flames.push(f); fire.add(f);
-}
-const fireLight=new THREE.PointLight(0xff8c2a, 1.6, 70, 2);
-fireLight.position.y=4; fire.add(fireLight);
-fire.position.set(ALT.x, ALT.top+0.8, ALT.z);
-scene.add(fire);
-
-/* fumée */
-const smokeTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;
-  const g=c.getContext('2d');const r=g.createRadialGradient(64,64,8,64,64,64);
-  r.addColorStop(0,'rgba(230,225,215,.55)');r.addColorStop(1,'rgba(230,225,215,0)');
-  g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
-const smokes=[];
-for(let i=0;i<14;i++){
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex, transparent:true, depthWrite:false}));
-  s.userData={t:Math.random()};
-  scene.add(s); smokes.push(s);
-}
-
-/* Kiyor (bassin de bronze) */
-(function kiyor(){
-  const x=-6, z=-14;
-  cyl(1.2,1.6,2.4, MAT.bronze, x, AZ.y+1.2, z);
-  const bowl=new THREE.Mesh(new THREE.SphereGeometry(3,20,12,0,Math.PI*2,0,Math.PI/2), MAT.bronze);
-  bowl.rotation.x=Math.PI; bowl.position.set(x, AZ.y+3.6, z);
-  bowl.castShadow=true; scene.add(bowl);
-  const water=new THREE.Mesh(new THREE.CircleGeometry(2.7,20),
-    new THREE.MeshStandardMaterial({color:0x3f6ea8, roughness:.15, metalness:.4}));
-  water.rotation.x=-Math.PI/2; water.position.set(x, AZ.y+3.65, z); scene.add(water);
-})();
-
-/* ============================================================
-   HEICHAL — le Sanctuaire
-   ============================================================ */
-const HK={z:-30};
-(function heichal(){
-  // podium sous le Sanctuaire
-  box(64, 6.6, 54, stoneMat([10,1]), 0, AZ.y+3.3, -51);
-  // 12 marches montant vers l'Oulam
-  for(let i=0;i<12;i++){
-    box(36-i*1.2, 0.55, 2.2, marbleMat([8,1]), 0, AZ.y+0.3+i*0.55, -13-i*1.1);
-  }
-  const baseY=AZ.y+6.6;
-  // façade (Oulam) 
-  const facade=box(58, 46, 7, marbleMat([8,6]), 0, baseY+23, HK.z);
-  // pilastres dorés
-  for(let i=-2;i<=2;i++){
-    if(i===0) continue;
-    cyl(1.1,1.3,40, MAT.goldDark, i*11.5, baseY+20, HK.z+4.0, 10);
-  }
-  // portail
-  box(13, 20, 2.5, MAT.gold, 0, baseY+11, HK.z+3.4);
-  box(10, 17, 3.5, MAT.dark, 0, baseY+9.5, HK.z+3.6, false);
-  // gefen zahav (vigne d'or stylisée au-dessus du portail)
-  const vine=new THREE.Mesh(new THREE.TorusGeometry(6,0.55,8,24,Math.PI), MAT.gold);
-  vine.position.set(0, baseY+21.5, HK.z+3.8); scene.add(vine);
-  [-4,0,4].forEach(vx=>{
-    const grape=new THREE.Mesh(new THREE.SphereGeometry(0.9,10,8), MAT.gold);
-    grape.position.set(vx, baseY+20.2+Math.abs(vx)*0.35, HK.z+3.9); scene.add(grape);
-  });
-  // corniche + créneaux dorés
-  box(60, 2.4, 9, MAT.gold, 0, baseY+47.2, HK.z);
-  for(let i=0;i<15;i++){
-    box(2.2,2.2,2.2, MAT.gold, -28+i*4, baseY+49.4, HK.z);
-  }
-  // kalya orev — pointes d'or sur le toit
-  for(let i=0;i<14;i++){
-    const spike=new THREE.Mesh(new THREE.ConeGeometry(0.35,2.4,6), MAT.gold);
-    spike.position.set(-26+i*4, baseY+51.6, HK.z); spike.castShadow=true; scene.add(spike);
-  }
-  // corps du Heichal + Kodesh HaKodashim (derrière)
-  box(34, 40, 44, marbleMat([6,5]), 0, baseY+20, HK.z-25);
-  box(36, 2.2, 46, MAT.gold, 0, baseY+41, HK.z-25);
-  // bandes d'or horizontales sur la façade
-  box(58.4, 1.4, 7.4, MAT.gold, 0, baseY+34, HK.z, false);
-  box(58.4, 1.4, 7.4, MAT.gold, 0, baseY+8, HK.z, false);
-})();
-
-/* ============================================================
-   KOHANIM — figures animées
-   ============================================================ */
-function makeKohen(gadol=false){
-  const g=new THREE.Group();
-  const robe=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.62,1.5,10),
-    gadol? MAT.techelet : MAT.white);
-  robe.position.y=0.95; robe.castShadow=true; g.add(robe);
-  if(gadol){ // ephod doré par-dessus le me'il
-    const ephod=new THREE.Mesh(new THREE.CylinderGeometry(0.46,0.55,0.8,10), MAT.gold);
-    ephod.position.y=1.35; g.add(ephod);
-    const choshen=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.4,0.1), MAT.crimson);
-    choshen.position.set(0,1.45,0.44); g.add(choshen);
-    const rim=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.48,0.06), MAT.gold);
-    rim.position.set(0,1.45,0.4); g.add(rim);
-  } else {
-    const avnet=new THREE.Mesh(new THREE.CylinderGeometry(0.47,0.5,0.16,10), MAT.techelet);
-    avnet.position.y=1.28; g.add(avnet);
-  }
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.24,12,10), MAT.skin);
-  head.position.y=1.95; head.castShadow=true; g.add(head);
-  const mitz=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.28,0.3,10), MAT.white);
-  mitz.position.y=2.18; g.add(mitz);
-  if(gadol){ // tzitz d'or
-    const tzitz=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.09,0.05), MAT.gold);
-    tzitz.position.set(0,2.05,0.24); g.add(tzitz);
-  }
-  const armGeo=new THREE.CylinderGeometry(0.07,0.07,0.62,6);
-  const aL=new THREE.Mesh(armGeo, MAT.white), aR=new THREE.Mesh(armGeo, MAT.white);
-  aL.position.set(-0.5,1.4,0); aL.rotation.z= 0.5;
-  aR.position.set( 0.5,1.4,0); aR.rotation.z=-0.5;
-  g.add(aL,aR);
-  g.userData.bobPhase=Math.random()*6;
-  return g;
-}
-
-const kohanim=[];
-function placeKohen(x,z,rotY,gadol=false, y=AZ.y-0.2){
-  const k=makeKohen(gadol); k.position.set(x,y,z); k.rotation.y=rotY;
-  scene.add(k); kohanim.push(k); return k;
-}
-placeKohen(-6, -10, Math.PI, true);              // Kohen Gadol près du Kiyor
-placeKohen(4.5, 6, 0.6);                          // au pied de l'autel
-placeKohen(19, 12, -0.7);
-placeKohen(-2, 16, 0.2);
-placeKohen(-14, 2, 1.2);
-placeKohen(8, -18, Math.PI*0.9);
-// deux Kohanim sur la rampe
-placeKohen(ALT.x+14, ALT.z-1.6, -Math.PI/2, false, AZ.y+6.4);
-placeKohen(ALT.x+7,  ALT.z+1.6, -Math.PI/2, false, AZ.y+8.6);
-
-/* procession en boucle dans la Azara */
-const procession=[];
-const procPath=[ new THREE.Vector3(-24,AZ.y-0.2,24), new THREE.Vector3(-32,AZ.y-0.2,-6),
-                 new THREE.Vector3(-20,AZ.y-0.2,-20), new THREE.Vector3(-4,AZ.y-0.2,-8),
-                 new THREE.Vector3(-4,AZ.y-0.2,20) ];
-const procCurve=new THREE.CatmullRomCurve3(procPath, true);
-for(let i=0;i<4;i++){
-  const k=makeKohen(); scene.add(k);
-  procession.push({mesh:k, t:i*0.25});
-}
-
-/* quelques fidèles dans Ezrat Nashim (tuniques beiges) */
-const folkMat=new THREE.MeshStandardMaterial({color:0xcdb894, roughness:.85});
-for(let i=0;i<9;i++){
-  const g=new THREE.Group();
-  const r=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.58,1.45,9), folkMat);
-  r.position.y=0.9; r.castShadow=true; g.add(r);
-  const h=new THREE.Mesh(new THREE.SphereGeometry(0.22,10,8), MAT.skin);
-  h.position.y=1.85; g.add(h);
-  g.position.set(EN.x0+12+Math.random()*(EN.x1-EN.x0-24), 0.3, EN.z0+12+Math.random()*40);
-  g.rotation.y=Math.random()*6;
-  g.userData.bobPhase=Math.random()*6;
-  scene.add(g); kohanim.push(g);
-}
-
-/* ============================================================
-   TAVIOT — étiquettes hébraïques flottantes
-   ============================================================ */
-const labels=[];
-function makeLabel(text, x,y,z, scale=1){
-  const c=document.createElement('canvas'); c.width=1024; c.height=224;
-  const g=c.getContext('2d');
-  g.font='700 108px "Frank Ruhl Libre", "Times New Roman", serif';
-  g.textAlign='center'; g.textBaseline='middle'; g.direction='rtl';
-  g.shadowColor='rgba(0,0,0,.8)'; g.shadowBlur=18;
-  g.lineWidth=10; g.strokeStyle='rgba(20,15,5,.9)';
-  g.strokeText(text,512,112);
-  g.fillStyle='#f0d98c'; g.fillText(text,512,112);
-  const sp=new THREE.Sprite(new THREE.SpriteMaterial({
-    map:new THREE.CanvasTexture(c), transparent:true, depthTest:false}));
-  sp.scale.set(30*scale, 6.6*scale, 1);
-  sp.position.set(x,y,z);
-  scene.add(sp); labels.push(sp); return sp;
-}
-makeLabel('הֵיכָל', 0, AZ.y+62, HK.z, 1.3);
-makeLabel('קֹדֶשׁ הַקֳּדָשִׁים', 0, AZ.y+52, HK.z-42, 0.95);
-makeLabel('מִזְבֵּחַ הָעוֹלָה', ALT.x, AZ.y+20, ALT.z, 0.9);
-makeLabel('הַכֶּבֶשׁ', ALT.x+22, AZ.y+13, ALT.z, 0.6);
-makeLabel('שַׁעַר נִיקָנוֹר', 0, AZ.y+21, AZ.z1, 0.8);
-makeLabel('עֶזְרַת נָשִׁים', 0, 18, (EN.z0+EN.z1)/2, 0.9);
-makeLabel('חֲמֵשׁ עֶשְׂרֵה מַעֲלוֹת', 0, 12, EN.z0+6, 0.55);
-makeLabel('כִּיּוֹר', -6, AZ.y+9, -14, 0.5);
-
-/* ============================================================
-   CONTRÔLES — orbite (souris + tactile) / gyroscope / stéréo VR
-   ============================================================ */
-const target=new THREE.Vector3(0, 14, -4);
-let theta=0.65, phi=1.12, radius=150;
-let dTheta=0, dPhi=0, dRadius=0;
-const el=renderer.domElement;
-let dragging=false, px=0, py=0, pinch=0;
-let gyro=false, vr=false, touring=false;
-
-function stopTour(){ if(touring){ touring=false; setBtn(bTour,false); caption(''); } }
-
-el.addEventListener('mousedown', e=>{dragging=true;px=e.clientX;py=e.clientY; stopTour();});
-addEventListener('mousemove', e=>{ if(!dragging) return;
-  dTheta -= (e.clientX-px)*0.005; dPhi -= (e.clientY-py)*0.005;
-  px=e.clientX; py=e.clientY; });
-addEventListener('mouseup', ()=>dragging=false);
-el.addEventListener('wheel', e=>{ dRadius += e.deltaY*0.06; stopTour(); }, {passive:true});
-el.addEventListener('touchstart', e=>{ stopTour();
-  if(e.touches.length===1){ dragging=true; px=e.touches[0].clientX; py=e.touches[0].clientY; }
-  else if(e.touches.length===2){
-    pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
-                     e.touches[0].clientY-e.touches[1].clientY); }
-}, {passive:true});
-el.addEventListener('touchmove', e=>{
-  if(e.touches.length===1 && dragging){
-    dTheta -= (e.touches[0].clientX-px)*0.006;
-    dPhi   -= (e.touches[0].clientY-py)*0.006;
-    px=e.touches[0].clientX; py=e.touches[0].clientY;
-  } else if(e.touches.length===2){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
-                       e.touches[0].clientY-e.touches[1].clientY);
-    dRadius += (pinch-d)*0.35; pinch=d;
-  }
-}, {passive:true});
-el.addEventListener('touchend', ()=>dragging=false);
-
-/* gyroscope */
-const gyroState={alpha:0,beta:0,gamma:0,orient:0, ok:false};
-const zee=new THREE.Vector3(0,0,1), gEuler=new THREE.Euler(),
-      q0=new THREE.Quaternion(), q1=new THREE.Quaternion(-Math.sqrt(0.5),0,0,Math.sqrt(0.5));
-addEventListener('deviceorientation', e=>{
-  if(e.alpha===null) return;
-  gyroState.alpha=THREE.MathUtils.degToRad(e.alpha);
-  gyroState.beta =THREE.MathUtils.degToRad(e.beta);
-  gyroState.gamma=THREE.MathUtils.degToRad(e.gamma);
-  gyroState.ok=true;
-});
-addEventListener('orientationchange', ()=>{
-  gyroState.orient=THREE.MathUtils.degToRad(Number(screen.orientation?.angle ?? window.orientation ?? 0));
-});
-gyroState.orient=THREE.MathUtils.degToRad(Number(screen.orientation?.angle ?? window.orientation ?? 0));
-
-function gyroQuat(q){
-  gEuler.set(gyroState.beta, gyroState.alpha, -gyroState.gamma, 'YXZ');
-  q.setFromEuler(gEuler); q.multiply(q1);
-  q.multiply(q0.setFromAxisAngle(zee, -gyroState.orient));
-}
-async function askGyroPermission(){
-  try{
-    if(typeof DeviceOrientationEvent!=='undefined' &&
-       typeof DeviceOrientationEvent.requestPermission==='function'){
-      const r=await DeviceOrientationEvent.requestPermission();
-      return r==='granted';
-    }
-  }catch(e){ return false; }
-  return true;
-}
-
-/* points de vue pour le mode gyro / VR (tap pour changer) */
-const standPoints=[
-  {p:new THREE.Vector3(0, AZ.y+3.2, 26),  name:'בתוך העזרה'},
-  {p:new THREE.Vector3(ALT.x+26, AZ.y+3.2, ALT.z), name:'ליד הכבש'},
-  {p:new THREE.Vector3(0, 3.4, 64),  name:'עזרת נשים'},
-  {p:new THREE.Vector3(0, AZ.y+8, 2), name:'מול ההיכל'},
-  {p:new THREE.Vector3(90, 34, 100), name:'מבט מהר הזיתים'}
-];
-let standIdx=0;
-el.addEventListener('click', ()=>{
-  if(gyro||vr){ standIdx=(standIdx+1)%standPoints.length;
-    caption('📍 '+standPoints[standIdx].name, 1800); }
-});
-
-/* ---------- visite guidée ---------- */
-const tour=[
-  {p:[150,85,170],  l:[0,18,-6],  t:'הַר הַבַּיִת — מבט כללי'},
-  {p:[0,10,86],     l:[0,9,30],   t:'עֶזְרַת נָשִׁים — שער הכניסה'},
-  {p:[0,9,48],      l:[0,12,10],  t:'ט״ו הַמַּעֲלוֹת ושַׁעַר נִיקָנוֹר'},
-  {p:[36,14,30],    l:[ALT.x,AZ.y+9,ALT.z], t:'מִזְבֵּחַ הָעוֹלָה ואֵשׁ הַתָּמִיד'},
-  {p:[-16,10,14],   l:[6,AZ.y+3,8], t:'הַכֹּהֲנִים בַּעֲבוֹדָתָם'},
-  {p:[0,20,20],     l:[0,AZ.y+28,HK.z], t:'הַהֵיכָל וּפִתְחוֹ הַמּוּזְהָב'},
-  {p:[-120,70,-130],l:[0,20,0],   t:'קֹדֶשׁ הַקֳּדָשִׁים — מבט ממערב'}
-];
-let tourIdx=0, tourT=0;
-const tourFrom=new THREE.Vector3(), tourLook=new THREE.Vector3();
-
-/* ---------- HUD wiring ---------- */
-const $=id=>document.getElementById(id);
-const bInfo=$('bInfo'), bLabels=$('bLabels'), bTour=$('bTour'),
-      bGyro=$('bGyro'), bVR=$('bVR'), capEl=$('caption');
-let capTimer=null;
-function caption(txt, ms){
-  if(!txt){ capEl.classList.remove('show'); return; }
-  capEl.textContent=txt; capEl.classList.add('show');
-  if(capTimer) clearTimeout(capTimer);
-  if(ms) capTimer=setTimeout(()=>capEl.classList.remove('show'), ms);
-}
-function setBtn(b,on){ b.classList.toggle('on',on); }
-
-bInfo.onclick=()=>$('info').classList.toggle('open');
-$('closeInfo').onclick=()=>$('info').classList.remove('open');
-bLabels.onclick=()=>{ const v=!labels[0].visible;
-  labels.forEach(l=>l.visible=v); setBtn(bLabels,v); };
-bTour.onclick=()=>{
-  touring=!touring; setBtn(bTour,touring);
-  if(touring){ gyro=false; vr=false; setBtn(bGyro,false); setBtn(bVR,false);
-    $('vrExit').style.display='none';
-    tourIdx=0; tourT=0;
-    tourFrom.copy(camera.position); tourLook.copy(target);
-  } else caption('');
-};
-bGyro.onclick=async ()=>{
-  if(!gyro){ const ok=await askGyroPermission();
-    if(!ok){ caption('אין הרשאת חיישנים 😕', 2500); return; }
-    gyro=true; touring=false; setBtn(bTour,false); caption('📍 '+standPoints[standIdx].name, 1800);
-  } else gyro=false;
-  setBtn(bGyro,gyro);
-};
-bVR.onclick=async ()=>{
-  if(!vr){
-    const ok=await askGyroPermission();
-    if(!ok){ caption('אין הרשאת חיישנים 😕', 2500); return; }
-    vr=true; gyro=true; touring=false;
-    setBtn(bVR,true); setBtn(bGyro,true); setBtn(bTour,false);
-    $('vrExit').style.display='block';
-    $('hud').classList.remove('show');
-    try{ await document.documentElement.requestFullscreen();
-         await screen.orientation.lock('landscape'); }catch(e){}
-    caption('הכניסו את המכשיר ל־Gear VR 🎧', 3000);
-  }
-};
-$('vrExit').onclick=()=>{
-  vr=false; gyro=false; setBtn(bVR,false); setBtn(bGyro,false);
-  $('vrExit').style.display='none'; $('hud').classList.add('show');
-  try{ document.exitFullscreen(); screen.orientation.unlock(); }catch(e){}
-};
-
-$('enter').onclick=()=>{
-  $('start').classList.add('hide');
-  $('hud').classList.add('show');
-  caption('גררו כדי להסתובב · צבטו לזום', 3500);
-};
-
-/* ---------- resize ---------- */
-addEventListener('resize', ()=>{
-  camera.aspect=innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-/* ============================================================
-   BOUCLE D'ANIMATION
-   ============================================================ */
-const clock=new THREE.Clock();
-const tmpQ=new THREE.Quaternion();
-function smooth(t){ return t*t*(3-2*t); }
-
-function animate(){
-  requestAnimationFrame(animate);
-  const dt=Math.min(clock.getDelta(), 0.05);
-  const t=clock.elapsedTime;
-
-  /* flammes */
-  flames.forEach(f=>{
-    const s=0.75+0.3*Math.sin(t*7*f.userData.s+f.userData.p);
-    f.scale.set(s,0.8+0.45*Math.sin(t*9*f.userData.s+f.userData.p),s);
-  });
-  fireLight.intensity=1.3+0.5*Math.sin(t*11)+0.25*Math.sin(t*23);
-
-  /* fumée */
-  smokes.forEach((s,i)=>{
-    s.userData.t=(s.userData.t+dt*0.08)%1;
-    const k=s.userData.t;
-    s.position.set(ALT.x+Math.sin(t*0.5+i)*2*k,
-                   ALT.top+2+k*46,
-                   ALT.z+Math.cos(t*0.4+i)*2*k+k*6);
-    const sc=3+k*14; s.scale.set(sc,sc,1);
-    s.material.opacity=0.5*(1-k)*(k>0.04?1:k/0.04);
-  });
-
-  /* Kohanim : respiration + procession */
-  kohanim.forEach(k=>{ k.position.y+= Math.sin(t*2+k.userData.bobPhase)*0.0012; });
-  procession.forEach(p=>{
-    p.t=(p.t+dt*0.014)%1;
-    const pos=procCurve.getPointAt(p.t);
-    const nxt=procCurve.getPointAt((p.t+0.01)%1);
-    p.mesh.position.copy(pos);
-    p.mesh.position.y+=Math.abs(Math.sin(p.t*90))*0.06;
-    p.mesh.lookAt(nxt.x, pos.y, nxt.z);
-  });
-
-  /* caméra */
-  if(touring){
-    const seg=tour[tourIdx];
-    tourT+=dt/7;
-    const k=smooth(Math.min(tourT,1));
-    camera.position.lerpVectors(tourFrom, new THREE.Vector3(...seg.p), k);
-    target.lerpVectors(tourLook, new THREE.Vector3(...seg.l), k);
-    camera.lookAt(target);
-    caption(seg.t);
-    if(tourT>=1.35){
-      tourFrom.copy(camera.position); tourLook.copy(target);
-      tourIdx=(tourIdx+1)%tour.length; tourT=0;
-    }
-    // sync sphériques pour reprise fluide
-    const off=camera.position.clone().sub(target);
-    radius=off.length(); theta=Math.atan2(off.x,off.z); phi=Math.acos(off.y/radius);
-  }
-  else if(gyro && gyroState.ok){
-    camera.position.copy(standPoints[standIdx].p);
-    gyroQuat(tmpQ);
-    camera.quaternion.slerp(tmpQ, 0.5);
-  }
-  else{
-    theta+=dTheta; phi+=dPhi; radius+=dRadius;
-    dTheta*=0.82; dPhi*=0.82; dRadius*=0.75;
-    phi=Math.max(0.12, Math.min(1.48, phi));
-    radius=Math.max(18, Math.min(320, radius));
-    camera.position.set(
-      target.x+radius*Math.sin(phi)*Math.sin(theta),
-      target.y+radius*Math.cos(phi),
-      target.z+radius*Math.sin(phi)*Math.cos(theta));
-    camera.lookAt(target);
-  }
-
-  /* rendu mono ou stéréo */
-  if(vr){
-    const w=innerWidth, h=innerHeight;
-    renderer.setScissorTest(true);
-    camera.updateMatrixWorld();
-    [ [eyeL, 0, -0.32], [eyeR, w/2, 0.32] ].forEach(([eye, x0, off])=>{
-      eye.aspect=(w/2)/h; eye.fov=camera.fov; eye.near=camera.near; eye.far=camera.far;
-      eye.updateProjectionMatrix();
-      eye.position.copy(camera.position);
-      eye.quaternion.copy(camera.quaternion);
-      eye.translateX(off);
-      renderer.setViewport(x0,0,w/2,h);
-      renderer.setScissor(x0,0,w/2,h);
-      renderer.render(scene, eye);
-    });
-    renderer.setScissorTest(false);
-    renderer.setViewport(0,0,w,h);
-  } else {
-    renderer.render(scene, camera);
-  }
-}
-animate();
-})();
-</script>
+  <noscript><section class="noscript"><h1>נדרש JavaScript</h1><p>החוויה התלת־ממדית זקוקה ל־JavaScript. המידע החינוכי יתווסף גם בגרסה נגישה ללא תלת־ממד.</p></section></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
