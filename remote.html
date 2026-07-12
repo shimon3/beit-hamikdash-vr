@@ -1,20 +1,19 @@
 <!doctype html>
 <html lang="he" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101829"><title>שלט בית המקדש VR</title><link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./remote.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101829"><title>שלט בית המקדש</title><link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./remote.css"></head>
 <body class="remote-page">
  <main class="remote-shell">
-  <header><p class="eyebrow">REMOTE CONTROL</p><h1>שלט בית המקדש</h1><p>שליטה בטלפון שנמצא בתוך המשקפת</p></header>
+  <header><p class="eyebrow">REMOTE CONTROL</p><h1>שלט בית המקדש</h1><p>שליטה מרחוק בסיור המוצג במסך אחר</p></header>
   <section id="pair-card" class="remote-card">
-   <h2>חיבור למשקפת</h2><label>קוד חיבור<input id="pair-token" inputmode="text" autocomplete="off" maxlength="39" placeholder="xxxx-xxxx-xxxx-xxxx…"></label>
-   <button id="connect" class="primary">חיבור</button><p id="connection-message" role="status">פתחו את מסך השלט במשקפת והעתיקו את הקוד או השתמשו בקישור שנשלח.</p>
+   <h2>חיבור למכשיר</h2><label>קוד חיבור<input id="pair-token" inputmode="text" autocomplete="off" maxlength="39" placeholder="xxxx-xxxx-xxxx-xxxx…"></label>
+   <button id="connect" class="primary">חיבור</button><p id="connection-message" role="status">פתחו את מסך השלט במכשיר המרוחק והעתיקו את הקוד או השתמשו בקישור שנשלח.</p>
   </section>
   <section id="controls" class="hidden" aria-label="פקדי המשקפת">
    <div class="remote-status"><span id="connection-dot"></span><strong id="headset-status">מחובר</strong><small id="headset-mode">ממתין למצב</small></div>
-   <section class="remote-card"><h2>חוויה</h2><div class="button-grid three"><button data-command="mode" data-value="tour">סיור מודרך</button><button data-command="mode" data-value="explore">סיור חופשי</button><button data-command="mode" data-value="stereo">סטריאו VR</button></div></section>
-   <section class="remote-card"><h2>סיור מודרך</h2><div class="transport"><button data-command="tourPrev">⏮<span>הקודם</span></button><button data-command="tourPause" class="primary">⏯<span>השהיה / המשך</span></button><button data-command="tourNext">⏭<span>הבא</span></button></div><label>מעבר ישיר לתחנה<select id="tour-stop"></select></label></section>
-   <section class="remote-card"><h2>מבט ומוקדי ידע</h2><div class="button-grid"><button data-command="overview">מבט־על</button><button data-command="nextView">גובה אדם הבא</button><button data-command="nextHotspot">מוקד ידע הבא</button><button data-command="recenter">מרכוז החיישן</button></div></section>
-   <section class="remote-card"><h2>תצוגה וצליל</h2><label>איכות<select id="remote-quality"><option value="low">חסכונית</option><option value="balanced">מאוזנת</option><option value="high">גבוהה</option></select></label><label>עוצמה<input id="remote-volume" type="range" min="0" max="1" step=".05" value=".45"></label><button data-command="audioToggle">הפעלה / השתקת צליל</button></section>
-   <section class="remote-card danger-zone"><h2>יציאה</h2><div class="button-grid"><button data-command="exitStereo">יציאה מסטריאו</button><button data-command="menu">חזרה לתפריט הראשי</button></div></section>
+   <section class="remote-card"><h2>חוויה</h2><div class="button-grid"><button data-command="tour">התחלת הסיור</button><button data-command="gallery">גלריה</button></div></section>
+   <section class="remote-card"><h2>סיור בתמונות</h2><div class="transport"><button data-command="tourPrev">⏮<span>הקודם</span></button><button data-command="tourPause" class="primary">⏯<span>השהיה / המשך</span></button><button data-command="tourNext">⏭<span>הבא</span></button></div><label>מעבר ישיר לתמונה<select id="tour-stop"></select></label></section>
+   <section class="remote-card"><h2>צליל</h2><label>עוצמה<input id="remote-volume" type="range" min="0" max="1" step=".05" value=".45"></label><button data-command="audioToggle">הפעלה / השתקת צליל</button></section>
+   <section class="remote-card danger-zone"><h2>יציאה</h2><div class="button-grid"><button data-command="menu">חזרה לתפריט הראשי</button></div></section>
   </section>
  </main>
  <script type="module" src="./js/remote-controller.js"></script>

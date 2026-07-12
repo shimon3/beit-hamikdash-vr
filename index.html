@@ -4,124 +4,81 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#101829">
-  <meta name="description" content="חוויה חינוכית תלת־ממדית של בית המקדש השני">
-  <title>בית המקדש — חוויה תלת־ממדית</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <meta name="description" content="חוויה חינוכית חזותית של בית המקדש השני">
+  <title>בית המקדש — מסע חזותי</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-menu">דלגו לתפריט</a>
-  <canvas id="scene" aria-label="שחזור תלת־ממדי אינטראקטיבי של בית המקדש"></canvas>
 
-  <div id="loading" class="screen status-screen" role="status" aria-live="polite">
-    <div class="spinner" aria-hidden="true"></div><h1>בונים את ירושלים…</h1><p id="loading-text">טוענים את החוויה</p>
-  </div>
-  <section id="fatal" class="screen status-screen hidden" role="alert">
-    <span class="status-icon">⚠</span><h1>לא הצלחנו לפתוח את החוויה</h1>
-    <p id="fatal-message">הדפדפן אינו תומך בתצוגה התלת־ממדית.</p>
-    <button id="retry" class="primary">נסו שוב</button>
-  </section>
-
-  <main id="main-menu" class="screen menu hidden" aria-labelledby="menu-title">
+  <main id="main-menu" class="screen menu" aria-labelledby="menu-title" style="background-image:linear-gradient(rgba(9,15,27,.55),rgba(9,15,27,.92)),url('images/beith-hamikdash-overview.jpg')">
     <p class="eyebrow">ירושלים · תקופת בית שני</p>
     <h1 id="menu-title">בית המקדש</h1>
-    <p class="lead">מסע חינוכי תלת־ממדי אל ההיכל, המזבח ועבודת הכהנים</p>
-    <div class="mode-grid">
-      <button class="mode-card primary-card" data-mode="tour"><span>◉</span><strong>סיור מודרך</strong><small>שבע תחנות עם הסברים</small></button>
-      <button class="mode-card journey-card" data-mode="journey"><span>🚶</span><strong>מסע בתוך המקדש</strong><small>הליכה מודרכת בגובה אדם מן החומה אל ההיכל</small></button>
-      <button class="mode-card" data-mode="explore"><span>✦</span><strong>סיור חופשי</strong><small>גלו מוקדי ידע ונקודות מבט</small></button>
-      <button class="mode-card" data-mode="stereo"><span>◫</span><strong>מצב סטריאו לטלפון</strong><small>לתושבת Cardboard; אינו תמיכה מלאה ב־Gear VR</small></button>
+    <p class="lead">מסע חינוכי בתמונות אל ההיכל, המנורה ובגדי הכהונה</p>
+    <div class="menu-actions">
+      <button id="start-tour" class="primary">◉ התחלת הסיור</button>
+      <button id="open-gallery" class="text-button">כל התמונות בגלריה</button>
+      <button id="open-remote" class="text-button">⌁ שלט חיצוני</button>
     </div>
-    <div class="menu-actions"><button id="open-remote" class="primary">⌁ שלט חיצוני למשקפת</button><button id="open-settings" class="text-button">הגדרות והתאמה למכשיר</button></div>
-    <div id="compat-summary" class="compat-summary" aria-live="polite"></div>
   </main>
 
-  <section id="onboarding" class="screen onboarding hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
-    <div class="modal">
-      <button class="icon-button close-onboarding" aria-label="סגירה">×</button>
-      <p class="eyebrow" id="onboarding-kicker"></p><h2 id="onboarding-title"></h2>
-      <p id="onboarding-copy"></p><ul id="onboarding-list"></ul>
-      <button id="start-mode" class="primary">מתחילים</button>
-    </div>
+  <section id="gallery-grid" class="screen gallery-screen hidden" aria-labelledby="gallery-title">
+    <header class="gallery-header">
+      <button id="gallery-back" class="hud-button">⌂ <span>תפריט</span></button>
+      <h2 id="gallery-title">כל התמונות</h2>
+    </header>
+    <div id="gallery-items" class="gallery-items"></div>
   </section>
 
   <section id="remote-setup" class="screen onboarding hidden" role="dialog" aria-modal="true" aria-labelledby="remote-title">
     <div class="modal remote-setup-card">
       <button id="close-remote" class="icon-button" aria-label="סגירה">×</button>
-      <p class="eyebrow">REMOTE CONTROL</p><h2 id="remote-title">שלט חיצוני למשקפת</h2>
-      <p>פתחו את הקישור בטלפון או במחשב אחר לפני הכנסת המכשיר למשקפת.</p>
+      <p class="eyebrow">REMOTE CONTROL</p><h2 id="remote-title">שלט חיצוני</h2>
+      <p>פתחו את הקישור בטלפון או במחשב אחר כדי לשלוט בסיור מרחוק.</p>
       <div id="remote-state" class="remote-pair-state"><span id="remote-dot"></span><strong id="remote-state-text">השלט עדיין לא מחובר</strong></div>
       <label>קוד חיבור<input id="remote-code" readonly></label>
-      <button id="prepare-stereo" class="primary prepare-stereo">הכנת סטריאו ומסך מלא לפני הכנסת הטלפון</button><div class="remote-actions"><button id="create-remote">יצירת שלט חדש</button><button id="share-remote">שיתוף קישור</button><button id="copy-remote">העתקת קישור</button><a id="open-remote-page" target="_blank" rel="noopener">פתיחת השלט כאן</a></div>
-      <small>הקוד אקראי וזמני. סגירת דף המשקפת מסיימת את השליטה.</small>
+      <div class="remote-actions"><button id="create-remote">יצירת שלט חדש</button><button id="share-remote">שיתוף קישור</button><button id="copy-remote">העתקת קישור</button><a id="open-remote-page" target="_blank" rel="noopener">פתיחת השלט כאן</a></div>
+      <small>הקוד אקראי וזמני.</small>
     </div>
   </section>
 
   <header id="topbar" class="topbar hidden">
     <button id="back-menu" class="hud-button">⌂ <span>תפריט</span></button>
-    <div class="brand"><strong>בית המקדש</strong><small id="mode-name">סיור חופשי</small></div>
+    <div class="brand"><strong>בית המקדש</strong><small>סיור בתמונות</small></div>
     <button id="settings-button" class="hud-button" aria-label="הגדרות">⚙</button>
   </header>
 
   <div id="hint" class="hint hidden" role="status" aria-live="polite"></div>
-  <div id="fps" class="fps hidden">0 FPS</div>
 
-  <nav id="tour-controls" class="tour-controls hidden" aria-label="בקרת הסיור">
-    <div class="progress-wrap"><span id="tour-counter">1 / 7</span><progress id="tour-progress" max="7" value="1"></progress></div>
-    <div class="control-row">
-      <button id="tour-exit" aria-label="יציאה מהסיור">יציאה</button>
-      <button id="tour-prev" aria-label="התחנה הקודמת">הקודם</button>
-      <button id="tour-pause" class="primary" aria-label="השהיית הסיור">השהיה</button>
-      <button id="tour-next" aria-label="התחנה הבאה">הבא</button>
-    </div>
-  </nav>
+  <section id="slideshow" class="slideshow hidden" aria-label="תמונת בית המקדש">
+    <img id="slide-image" alt="">
+  </section>
 
-  <nav id="journey-controls" class="tour-controls journey-controls hidden" aria-label="בקרת המסע בגובה אדם">
-    <div class="journey-heading"><strong id="journey-title">למרגלות החומה</strong><small id="journey-subtitle">Au pied du mur</small></div>
-    <div class="progress-wrap"><span id="journey-counter">1 / 10</span><progress id="journey-progress" max="10" value="1"></progress></div>
-    <div class="control-row">
-      <button id="journey-exit" aria-label="יציאה מהמסע">יציאה</button>
-      <button id="journey-prev" aria-label="השלב הקודם">הקודם</button>
-      <button id="journey-pause" class="primary" aria-label="השהיית התנועה">השהיה</button>
-      <button id="journey-next" aria-label="המשך לשלב הבא">המשך</button>
-    </div>
-  </nav>
-
-  <aside id="education-panel" class="panel hidden" aria-labelledby="panel-title">
-    <button id="close-panel" class="icon-button" aria-label="סגירת המידע">×</button>
+  <aside id="education-panel" class="panel slide-panel hidden" aria-labelledby="panel-title">
     <p id="panel-kicker" class="eyebrow"></p><h2 id="panel-title"></h2><p id="panel-copy"></p>
   </aside>
 
-  <div id="explore-tools" class="explore-tools hidden">
-    <button id="overview" class="hud-button">⌖ <span>מבט־על</span></button>
-    <button id="next-view" class="hud-button">♙ <span>גובה אדם</span></button>
-    <button id="next-hotspot" class="hud-button">✦ <span>מוקד הבא</span></button>
-  </div>
-
-  <button id="stereo-exit" class="stereo-exit hidden">× יציאה ממצב סטריאו</button>
+  <nav id="tour-controls" class="tour-controls hidden" aria-label="בקרת הסיור">
+    <div class="progress-wrap"><span id="tour-counter">1 / 8</span><progress id="tour-progress" max="8" value="1"></progress></div>
+    <div class="control-row">
+      <button id="tour-exit" aria-label="יציאה מהסיור">יציאה</button>
+      <button id="tour-prev" aria-label="התמונה הקודמת">הקודם</button>
+      <button id="tour-pause" class="primary" aria-label="השהיית הסיור">השהיה</button>
+      <button id="tour-next" aria-label="התמונה הבאה">הבא</button>
+    </div>
+  </nav>
 
   <section id="settings" class="panel settings hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button id="close-settings" class="icon-button" aria-label="סגירת ההגדרות">×</button>
     <h2 id="settings-title">הגדרות</h2>
-    <label>איכות תצוגה<select id="quality"><option value="low">חסכונית</option><option value="balanced">מאוזנת</option><option value="high">גבוהה</option></select></label>
-    <label class="check"><input id="show-fps" type="checkbox"> הצגת מד ביצועים</label>
     <div class="setting-group"><h3>צליל אופציונלי</h3>
       <button id="audio-toggle">הפעלת אווירה</button>
       <label>עוצמה כללית<input id="volume" type="range" min="0" max="1" step=".05" value=".45"></label>
-      <div class="channel-grid">
-        <label><input type="checkbox" data-channel="ambience" checked> אווירה</label>
-        <label><input type="checkbox" data-channel="fire" checked> אש</label>
-        <label><input type="checkbox" data-channel="crowd" checked> קהל</label>
-        <label><input type="checkbox" data-channel="narration" checked> קריינות</label>
-      </div>
       <small>הצליל נוצר מקומית בדפדפן ואינו מתחיל ללא אישור.</small>
     </div>
-    <label>מרחק עיניים בסטריאו <output id="ipd-value">64</output> מ״מ<input id="ipd" type="range" min="52" max="76" value="64"></label>
-    <div id="capabilities" class="capabilities"></div>
   </section>
 
-  <noscript><section class="noscript"><h1>נדרש JavaScript</h1><p>החוויה התלת־ממדית זקוקה ל־JavaScript. המידע החינוכי יתווסף גם בגרסה נגישה ללא תלת־ממד.</p></section></noscript>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
+  <noscript><section class="noscript"><h1>נדרש JavaScript</h1><p>הסיור בתמונות זקוק ל־JavaScript.</p></section></noscript>
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>
